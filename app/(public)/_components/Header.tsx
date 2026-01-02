@@ -76,7 +76,7 @@ export default function Header() {
           ) : (
             <Link href="/dashboard">
               <button className="btn-primary px-8 py-3">
-                My Dashboard
+                Dashboard
               </button>
             </Link>
           )}
