@@ -8,6 +8,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { authService } from "@/lib/services/auth.service";
+import { cookieUtils } from "@/lib/cookies";
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -28,37 +30,20 @@ export default function LoginForm() {
     setError("");
     
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+      // Call backend API
+      const result = await authService.login(data);
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        setError(result.error || "Login failed");
-        return;
-      }
-
-      // Store token in localStorage or cookie
-      if (rememberMe) {
-        localStorage.setItem("token", result.token);
-        localStorage.setItem("user", JSON.stringify(result.user));
-      } else {
-        sessionStorage.setItem("token", result.token);
-        sessionStorage.setItem("user", JSON.stringify(result.user));
-      }
+      // Store token and user data in cookies
+      cookieUtils.setToken(result.token, rememberMe);
+      cookieUtils.setUser(result.data, rememberMe);
 
       console.log("Login successful:", result);
       
       // Redirect to dashboard
       router.push("/dashboard");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Login error:", err);
-      setError("An unexpected error occurred. Please try again.");
+      setError(err.message || "An unexpected error occurred. Please try again.");
     }
   };
 
