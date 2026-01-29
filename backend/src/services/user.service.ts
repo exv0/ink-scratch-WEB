@@ -1,4 +1,4 @@
-import { CreateUserDTO, LoginUserDTO } from "../dtos/user.dto";
+import { CreateUserDTO, LoginUserDTO, UpdateUserDTO } from "../dtos/user.dto";
 import { HttpError } from "../errors/http-error";
 import { UserRepository } from "../repositories/user.repository";
 import bcryptjs from "bcryptjs";
@@ -26,7 +26,7 @@ export class UserService {
         // Create user
         const newUser = await userRepository.createUser(data);
 
-        // ✅ NEW: Generate JWT token for the new user (same as login)
+        // Generate JWT token for the new user
         const payload = {
             id: newUser._id,
             email: newUser.email,
@@ -37,7 +37,6 @@ export class UserService {
         };
         const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
 
-        // ✅ NEW: Return both token and user (same as login)
         return { token, user: newUser };
     }
 
@@ -65,5 +64,18 @@ export class UserService {
         const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
         
         return { token, user };
+    }
+
+    // **New method to update user profile**
+    async updateProfile(data: UpdateUserDTO & { userId: string }) {
+        const { userId, profilePicture, bio } = data;
+
+        // Find the user and update their profile
+        const updatedUser = await userRepository.updateUser(userId, {
+            profilePicture, // Update profile picture if present
+            bio,            // Update bio if provided
+        });
+
+        return updatedUser;
     }
 }
