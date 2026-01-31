@@ -8,6 +8,52 @@ import { JWT_SECRET } from "../config";
 let userRepository = new UserRepository();
 
 export class UserService {
+    // ✅ Helper function to get base URL for images
+    private getImageBaseUrl(): string {
+        const baseUrl = process.env.API_BASE_URL || 'http://localhost:3000';
+        console.log('🌐 Image Base URL:', baseUrl); // ✅ Debug log
+        return baseUrl;
+    }
+
+    // ✅ Helper function to convert relative path to full URL
+    private getFullImageUrl(relativePath: string | null | undefined): string | null {
+        if (!relativePath) return null;
+        
+        // If it's already a full URL, return as is
+        if (relativePath.startsWith('http://') || relativePath.startsWith('https://')) {
+            console.log('✅ Image URL already full:', relativePath);
+            return relativePath;
+        }
+        
+        // Convert relative path to full URL
+        const baseUrl = this.getImageBaseUrl();
+        const fullUrl = `${baseUrl}/${relativePath}`;
+        console.log(`🔗 Converting image URL: ${relativePath} → ${fullUrl}`); // ✅ Debug log
+        return fullUrl;
+    }
+
+    // ✅ Helper function to format user response with full image URLs
+    private formatUserResponse(user: any) {
+        const formattedUser = {
+            _id: user._id,
+            email: user.email,
+            username: user.username,
+            fullName: user.fullName,
+            phoneNumber: user.phoneNumber,
+            gender: user.gender,
+            role: user.role,
+            profilePicture: this.getFullImageUrl(user.profilePicture), // ✅ Full URL
+            bio: user.bio,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+        };
+        console.log('👤 Formatted user response:', {
+            email: formattedUser.email,
+            profilePicture: formattedUser.profilePicture
+        }); // ✅ Debug log
+        return formattedUser;
+    }
+
     async createUser(data: CreateUserDTO) {
         // Business logic before creating User
         const emailCheck = await userRepository.getUserByEmail(data.email);
@@ -37,7 +83,8 @@ export class UserService {
         };
         const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
 
-        return { token, user: newUser };
+        // ✅ Return formatted user with full image URLs
+        return { token, user: this.formatUserResponse(newUser) };
     }
 
     async loginUser(data: LoginUserDTO) {
@@ -63,12 +110,15 @@ export class UserService {
         };
         const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
         
-        return { token, user };
+        // ✅ Return formatted user with full image URLs
+        return { token, user: this.formatUserResponse(user) };
     }
 
     // **New method to update user profile**
     async updateProfile(data: UpdateUserDTO & { userId: string }) {
         const { userId, profilePicture, bio } = data;
+
+        console.log('📝 Updating profile:', { userId, profilePicture, bio }); // ✅ Debug log
 
         // Find the user and update their profile
         const updatedUser = await userRepository.updateUser(userId, {
@@ -76,6 +126,7 @@ export class UserService {
             bio,            // Update bio if provided
         });
 
-        return updatedUser;
+        // ✅ Return formatted user with full image URLs
+        return this.formatUserResponse(updatedUser);
     }
 }
