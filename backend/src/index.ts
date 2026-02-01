@@ -3,7 +3,7 @@ import bodyParser from "body-parser";
 import cors from "cors"; 
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import path from "path"; // ✅ Add this
+import path from "path"; 
 
 import { connectDatabase } from "./database/mongodb";
 import { PORT } from "./config";
