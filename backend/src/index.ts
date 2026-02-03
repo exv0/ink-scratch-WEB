@@ -8,12 +8,12 @@ import path from "path";
 import { connectDatabase } from "./database/mongodb";
 import { PORT } from "./config";
 import authRoutes from "./routes/auth.routes";
+import adminRoutes from "./routes/admin.routes"; // ✅ Import admin routes
 
 dotenv.config();
 
 const app: Application = express();
 
-// CORS
 app.use(cors({
   origin: '*',
   credentials: true,
@@ -22,8 +22,6 @@ app.use(cors({
 }));
 
 app.use(bodyParser.json());
-
-// ✅ Serve uploaded files as static files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.get("/", (req: Request, res: Response) => {
@@ -31,6 +29,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes); // ✅ Register admin routes
 
 async function startServer() {
   try {
