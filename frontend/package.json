@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@types/css-modules": "^1.0.5",
     "bcryptjs": "^2.4.3",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
