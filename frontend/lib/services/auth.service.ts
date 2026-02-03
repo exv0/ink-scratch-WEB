@@ -6,13 +6,8 @@ import { cookieUtils } from '../cookies';
 interface AuthResponse {
   success: boolean;
   message: string;
-  data: any;
+  data: unknown;
   token: string;
-}
-
-interface ErrorResponse {
-  success: false;
-  message: string;
 }
 
 // Register data type matching backend DTO
@@ -57,11 +52,12 @@ export const authService = {
       }
 
       return result;
-    } catch (error: any) {
-      if (error.message.includes('Failed to fetch')) {
+    } catch (error: unknown) {
+      const err = error as Error;
+      if (err.message.includes('Failed to fetch')) {
         throw new Error('Cannot connect to server. Please check if backend is running.');
       }
-      throw new Error(error.message || 'Network error occurred');
+      throw new Error(err.message || 'Network error occurred');
     }
   },
 
@@ -89,11 +85,12 @@ export const authService = {
       }
 
       return result;
-    } catch (error: any) {
-      if (error.message.includes('Failed to fetch')) {
+    } catch (error: unknown) {
+      const err = error as Error;
+      if (err.message.includes('Failed to fetch')) {
         throw new Error('Cannot connect to server. Please check if backend is running.');
       }
-      throw new Error(error.message || 'Network error occurred');
+      throw new Error(err.message || 'Network error occurred');
     }
   },
 
