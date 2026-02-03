@@ -160,41 +160,4 @@ export class AuthController {
       }
     });
   }
-
-  // ✅ New method to update user role (promote user to admin)
-  async updateUserRole(req: Request, res: Response) {
-    try {
-      const { id } = req.params; // User ID from the URL params
-      const { role } = req.body; // Role ('admin' or 'user') from the request body
-
-      // Validate role
-      if (!role || (role !== 'admin' && role !== 'user')) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid role. Use 'admin' or 'user'.",
-        });
-      }
-
-      // Fetch the user and update their role
-      const updatedUser = await userService.updateUserById(id, { role });
-
-      if (!updatedUser) {
-        return res.status(404).json({
-          success: false,
-          message: "User not found",
-        });
-      }
-
-      return res.status(200).json({
-        success: true,
-        message: `User role updated to ${role} successfully`,
-        data: updatedUser,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: error.message || "Failed to update user role",
-      });
-    }
-  }
 }
