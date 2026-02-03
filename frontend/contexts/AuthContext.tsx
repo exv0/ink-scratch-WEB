@@ -1,4 +1,4 @@
-// contexts/AuthContext.tsx
+// contexts/AuthContext.tsx - UPDATED VERSION
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -12,6 +12,9 @@ interface User {
   fullName: string;
   phoneNumber: string;
   gender: string;
+  role: string; // ✅ Added role
+  profilePicture?: string;
+  bio?: string;
   [key: string]: any;
 }
 
@@ -20,6 +23,7 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isAdmin: boolean; // ✅ Added isAdmin helper
   logout: () => void;
   refreshAuth: () => void;
 }
@@ -36,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedUser = cookieUtils.getUser();
     
     setToken(storedToken || null);
-    setUser(storedUser);
+    setUser(storedUser as User | null);
   };
 
   useEffect(() => {
@@ -56,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         token,
         isAuthenticated: !!token,
+        isAdmin: user?.role === 'admin', // ✅ Helper to check if user is admin
         isLoading,
         logout,
         refreshAuth,
