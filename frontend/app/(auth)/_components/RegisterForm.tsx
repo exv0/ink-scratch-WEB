@@ -47,9 +47,9 @@ export default function RegisterForm() {
       setTimeout(() => {
         router.push("/dashboard");
       }, 1500);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Registration error:", err);
-      setError(err.message || "An unexpected error occurred. Please try again.");
+      setError((err as Error).message || "An unexpected error occurred. Please try again.");
     }
   };
 
