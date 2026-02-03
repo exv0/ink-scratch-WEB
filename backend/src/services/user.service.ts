@@ -54,7 +54,7 @@ export class UserService {
         return formattedUser;
     }
 
-    async createUser(data: CreateUserDTO) {
+    async createUser(data: CreateUserDTO | any) {
         // Business logic before creating User
         const emailCheck = await userRepository.getUserByEmail(data.email);
         if (emailCheck) {
@@ -69,8 +69,11 @@ export class UserService {
         const hashedPassword = await bcryptjs.hash(data.password, 10);
         data.password = hashedPassword;
 
+        // Remove confirmPassword before saving (if it exists)
+        const { confirmPassword, ...userDataToSave } = data;
+
         // Create user
-        const newUser = await userRepository.createUser(data);
+        const newUser = await userRepository.createUser(userDataToSave);
 
         // Generate JWT token for the new user
         const payload = {
@@ -128,5 +131,50 @@ export class UserService {
 
         // ✅ Return formatted user with full image URLs
         return this.formatUserResponse(updatedUser);
+    }
+
+    // ✅ Get all users (for admin)
+    async getAllUsers() {
+        const users = await userRepository.getAllUsers();
+        return users.map(user => this.formatUserResponse(user));
+    }
+
+    // ✅ Get user by ID (for admin)
+    async getUserById(userId: string) {
+        const user = await userRepository.getUserById(userId);
+        if (!user) {
+            throw new HttpError(404, "User not found");
+        }
+        return this.formatUserResponse(user);
+    }
+
+    // ✅ Update user by ID (for admin - can update any field)
+    async updateUserById(userId: string, updateData: any) {
+        const user = await userRepository.getUserById(userId);
+        if (!user) {
+            throw new HttpError(404, "User not found");
+        }
+
+        // If password is being updated, hash it
+        if (updateData.password) {
+            updateData.password = await bcryptjs.hash(updateData.password, 10);
+        }
+
+        const updatedUser = await userRepository.updateUser(userId, updateData);
+        return this.formatUserResponse(updatedUser);
+    }
+
+    // ✅ Delete user (for admin)
+    async deleteUser(userId: string) {
+        const user = await userRepository.getUserById(userId);
+        if (!user) {
+            throw new HttpError(404, "User not found");
+        }
+
+        const result = await userRepository.deleteUser(userId);
+        if (!result) {
+            throw new HttpError(500, "Failed to delete user");
+        }
+        return true;
     }
 }
