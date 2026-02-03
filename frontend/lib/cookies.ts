@@ -25,7 +25,7 @@ export const cookieUtils = {
   },
 
   // Set user data
-  setUser: (user: any, rememberMe: boolean = false) => {
+  setUser: (user: unknown, rememberMe: boolean = false) => {
     const userJson = JSON.stringify(user);
     if (rememberMe) {
       Cookies.set(USER_KEY, userJson, { expires: 7 });
@@ -35,7 +35,7 @@ export const cookieUtils = {
   },
 
   // Get user data
-  getUser: (): any | null => {
+  getUser: (): unknown | null => {
     const userJson = Cookies.get(USER_KEY);
     if (!userJson) return null;
     try {
