@@ -19,7 +19,12 @@ export const authorizeUser = (
 
     const token = authHeader.substring(7);
 
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
+    // ✅ Decode with role included
+    const decoded = jwt.verify(token, JWT_SECRET) as { 
+      id: string; 
+      email: string;
+      role: string; // ✅ Add role
+    };
     
     req.user = decoded;
     
