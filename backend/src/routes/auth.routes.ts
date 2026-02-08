@@ -1,3 +1,5 @@
+// backend/src/routes/auth.routes.ts - UPDATED VERSION
+
 import { Router } from "express";
 import { AuthController } from "../controllers/auth.controller";
 import { authorizeUser } from "../middlewares/authorized.middleware";
@@ -5,13 +7,19 @@ import { authorizeUser } from "../middlewares/authorized.middleware";
 let authController = new AuthController();
 const router = Router();
 
-router.post("/register", authController.register);
-router.post("/login", authController.login);
+// Public routes
+router.post("/register", authController.register.bind(authController));
+router.post("/login", authController.login.bind(authController));
 
-// Protected route - update logged-in user's profile
-router.put("/update-profile", authorizeUser, authController.updateProfile);
+// ✅ NEW: Password reset routes (public)
+router.post("/forgot-password", authController.forgotPassword.bind(authController));
+router.post("/reset-password", authController.resetPassword.bind(authController));
+router.get("/verify-reset-token/:token", authController.verifyResetToken.bind(authController));
 
-// ✅ NEW: Update user by ID (for admin or user updating their own profile)
+// Protected routes - update logged-in user's profile
+router.put("/update-profile", authorizeUser, authController.updateProfile.bind(authController));
+
+// Update user by ID (for admin or user updating their own profile)
 router.put("/:id", authorizeUser, authController.updateUserById.bind(authController));
 
 export default router;
