@@ -1,17 +1,21 @@
-// lib/config.ts - UPDATED VERSION
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+// lib/config.ts - UPDATE YOUR API_ENDPOINTS
 
-console.log('🔥 API_URL loaded:', API_URL);
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export const API_ENDPOINTS = {
   AUTH: {
-    LOGIN: `${API_URL}/api/auth/login`,
-    REGISTER: `${API_URL}/api/auth/register`,
-    UPDATE_PROFILE: `${API_URL}/api/auth/update-profile`,
-    UPDATE_BY_ID: (id: string) => `${API_URL}/api/auth/${id}`,
+    REGISTER: `${API_BASE_URL}/api/auth/register`,
+    LOGIN: `${API_BASE_URL}/api/auth/login`,
+    UPDATE_PROFILE: `${API_BASE_URL}/api/auth/update-profile`,
+    // ✅ NEW: Password reset endpoints
+    FORGOT_PASSWORD: `${API_BASE_URL}/api/auth/forgot-password`,
+    RESET_PASSWORD: `${API_BASE_URL}/api/auth/reset-password`,
+    VERIFY_RESET_TOKEN: `${API_BASE_URL}/api/auth/verify-reset-token`,
   },
   ADMIN: {
-    USERS: `${API_URL}/api/admin/users`,
-    USER_BY_ID: (id: string) => `${API_URL}/api/admin/users/${id}`,
+    USERS: `${API_BASE_URL}/api/admin/users`,
   },
-} as const;
+  USER: {
+    PROFILE: `${API_BASE_URL}/api/user/profile`,
+  },
+};
