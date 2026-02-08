@@ -1,5 +1,8 @@
+// backend/src/types/user.type.ts - FIXED VERSION
+
 import z from 'zod';
 
+// Base user schema for creation/validation
 export const UserSchema = z.object({
     email: z.string().email().min(5),
     password: z.string().min(5),
@@ -13,3 +16,12 @@ export const UserSchema = z.object({
 });
 
 export type UserType = z.infer<typeof UserSchema>;
+
+// ✅ Extended user type that includes database fields (timestamps, reset tokens, etc.)
+export interface UserWithDbFields extends UserType {
+    _id?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+    resetPasswordToken?: string;
+    resetPasswordExpires?: Date;
+}
