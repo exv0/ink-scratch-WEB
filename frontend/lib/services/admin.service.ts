@@ -1,5 +1,5 @@
 // lib/services/admin.service.ts
-import { API_URL } from '../config';
+import { API_ENDPOINTS } from '../config';
 import { cookieUtils } from '../cookies';
 
 export interface CreateUserData {
@@ -25,6 +25,20 @@ export interface UpdateUserData {
   profileImage?: File;
 }
 
+export interface PaginatedUsersResponse {
+  success: boolean;
+  message: string;
+  data: unknown[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
 class AdminService {
   private getAuthHeaders(): HeadersInit {
     const token = cookieUtils.getToken();
@@ -39,7 +53,7 @@ class AdminService {
 
   async getAllUsers() {
     try {
-      const response = await fetch(`${API_URL}/api/admin/users`, {
+      const response = await fetch(API_ENDPOINTS.ADMIN.USERS, {
         method: 'GET',
         headers: {
           ...this.getAuthHeaders(),
@@ -59,9 +73,51 @@ class AdminService {
     }
   }
 
+  /**
+   * ✅ NEW: Get users with pagination
+   */
+  async getUsersPaginated(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }): Promise<PaginatedUsersResponse> {
+    const token = cookieUtils.getToken();
+    if (!token) {
+      throw new Error('Not authenticated');
+    }
+
+    // Build query string
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+
+    const queryString = queryParams.toString();
+    const url = `${API_ENDPOINTS.ADMIN.USERS}/paginated${queryString ? `?${queryString}` : ''}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || 'Failed to fetch users');
+    }
+
+    return result;
+  }
+
   async getUserById(userId: string) {
     try {
-      const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
+      const response = await fetch(`${API_ENDPOINTS.ADMIN.USERS}/${userId}`, {
         method: 'GET',
         headers: {
           ...this.getAuthHeaders(),
@@ -98,7 +154,7 @@ class AdminService {
         formData.append('profileImage', data.profileImage);
       }
 
-      const response = await fetch(`${API_URL}/api/admin/users`, {
+      const response = await fetch(API_ENDPOINTS.ADMIN.USERS, {
         method: 'POST',
         headers: this.getAuthHeaders(),
         body: formData,
@@ -129,7 +185,7 @@ class AdminService {
       if (data.role) formData.append('role', data.role);
       if (data.profileImage) formData.append('profileImage', data.profileImage);
 
-      const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
+      const response = await fetch(`${API_ENDPOINTS.ADMIN.USERS}/${userId}`, {
         method: 'PUT',
         headers: this.getAuthHeaders(),
         body: formData,
@@ -149,7 +205,7 @@ class AdminService {
 
   async deleteUser(userId: string) {
     try {
-      const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
+      const response = await fetch(`${API_ENDPOINTS.ADMIN.USERS}/${userId}`, {
         method: 'DELETE',
         headers: {
           ...this.getAuthHeaders(),
