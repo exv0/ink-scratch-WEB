@@ -113,4 +113,82 @@ export const authService = {
   getToken: (): string | undefined => {
     return cookieUtils.getToken();
   },
+  /**
+ * ✅ NEW: Request password reset
+ */
+forgotPassword: async (email: string): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await fetch(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || 'Failed to send reset email');
+    }
+
+    return result;
+  } catch (error: unknown) {
+    const err = error as Error;
+    throw new Error(err.message || 'Network error occurred');
+  }
+},
+
+/**
+ * ✅ NEW: Reset password with token
+ */
+resetPassword: async (data: {
+  token: string;
+  password: string;
+  confirmPassword: string;
+}): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await fetch(API_ENDPOINTS.AUTH.RESET_PASSWORD, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || 'Failed to reset password');
+    }
+
+    return result;
+  } catch (error: unknown) {
+    const err = error as Error;
+    throw new Error(err.message || 'Network error occurred');
+  }
+},
+
+/**
+ * ✅ NEW: Verify reset token
+ */
+verifyResetToken: async (token: string): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await fetch(`${API_ENDPOINTS.AUTH.VERIFY_RESET_TOKEN}/${token}`, {
+      method: 'GET',
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || 'Invalid token');
+    }
+
+    return result;
+  } catch (error: unknown) {
+    const err = error as Error;
+    throw new Error(err.message || 'Network error occurred');
+  }
+},
+
 };
