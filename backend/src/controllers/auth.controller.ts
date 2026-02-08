@@ -160,4 +160,105 @@ export class AuthController {
       }
     });
   }
+
+  /**
+   * ✅ NEW: POST /api/auth/forgot-password - Request password reset
+   */
+  async forgotPassword(req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          message: "Email is required",
+        });
+      }
+
+      await userService.requestPasswordReset(email);
+
+      // Always return success (don't reveal if email exists)
+      return res.status(200).json({
+        success: true,
+        message: "If that email exists, a password reset link has been sent",
+      });
+    } catch (error: any) {
+      console.error('Error in forgotPassword:', error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to process password reset request",
+      });
+    }
+  }
+
+  /**
+   * ✅ NEW: POST /api/auth/reset-password - Reset password with token
+   */
+  async resetPassword(req: Request, res: Response) {
+    try {
+      const { token, password, confirmPassword } = req.body;
+
+      // Validation
+      if (!token || !password || !confirmPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Token, password, and confirm password are required",
+        });
+      }
+
+      if (password !== confirmPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Passwords do not match",
+        });
+      }
+
+      if (password.length < 6) {
+        return res.status(400).json({
+          success: false,
+          message: "Password must be at least 6 characters",
+        });
+      }
+
+      await userService.resetPassword(token, password);
+
+      return res.status(200).json({
+        success: true,
+        message: "Password has been reset successfully",
+      });
+    } catch (error: any) {
+      return res.status(error.statusCode || 500).json({
+        success: false,
+        message: error.message || "Failed to reset password",
+      });
+    }
+  }
+
+  /**
+   * ✅ NEW: GET /api/auth/verify-reset-token/:token - Verify if reset token is valid
+   */
+  async verifyResetToken(req: Request, res: Response) {
+    try {
+      const { token } = req.params;
+
+      const isValid = await userService.verifyResetToken(token);
+
+      if (!isValid) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid or expired reset token",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Token is valid",
+      });
+    } catch (error: any) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to verify token",
+      });
+    }
+  }
 }
