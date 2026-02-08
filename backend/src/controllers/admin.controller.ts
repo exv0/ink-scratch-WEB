@@ -3,6 +3,8 @@ import { UserService } from "../services/user.service";
 import upload from "../config/upload.config";
 import { AdminCreateUserDTO, AdminUpdateUserDTO } from "../dtos/user.dto";
 import bcryptjs from "bcryptjs";
+import { PaginationHelper } from "../types/pagination.type";
+
 
 let userService = new UserService();
 
@@ -78,6 +80,26 @@ export class AdminController {
       });
     }
   }
+  /**
+ * ✅ NEW: GET /api/admin/users/paginated - Get users with pagination
+ */
+async getUsersPaginated(req: Request, res: Response) {
+    try {
+        const paginationParams = PaginationHelper.getPaginationParams(req.query);
+        const result = await userService.getUsersWithPagination(paginationParams);
+
+        return res.status(200).json({
+            success: true,
+            message: "Users retrieved successfully",
+            ...result, // Spreads 'data' and 'pagination'
+        });
+    } catch (error: any) {
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Failed to retrieve users",
+        });
+    }
+}
 
   // GET /api/admin/users/:id - Get user by ID
   async getUserById(req: Request, res: Response) {
