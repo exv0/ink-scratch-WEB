@@ -67,7 +67,7 @@ export default function AdminCreateUserPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-12">
+    <div className="min-h-screen bg-gradient-to from-slate-900 via-purple-900 to-slate-900 py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <button
@@ -82,7 +82,7 @@ export default function AdminCreateUserPage() {
         <div className="bg-white/5 backdrop-blur-xl border border-purple-500/30 rounded-2xl p-8 md:p-10 shadow-2xl">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-3">
+            <h1 className="text-4xl font-bold bg-gradient-to from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-3">
               Create New User
             </h1>
             <p className="text-purple-300 text-lg">Add a new user to the system</p>
@@ -104,7 +104,7 @@ export default function AdminCreateUserPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Profile Picture */}
-            <div className="bg-gradient-to-br from-purple-500/5 to-blue-500/5 border border-purple-500/20 rounded-xl p-6">
+            <div className="bg-gradient-to from-purple-500/5 to-blue-500/5 border border-purple-500/20 rounded-xl p-6">
               <label className="block text-sm font-bold text-purple-300 mb-4 uppercase tracking-wider">
                 Profile Picture (Optional)
               </label>
@@ -122,7 +122,7 @@ export default function AdminCreateUserPage() {
                       <div className="absolute inset-0 rounded-full ring-4 ring-purple-400/50"></div>
                     </div>
                   ) : (
-                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-xl">
+                    <div className="w-32 h-32 rounded-full bg-gradient-to from-purple-500 to-pink-500 flex items-center justify-center shadow-xl">
                       <span className="text-white text-5xl">📸</span>
                     </div>
                   )}
@@ -138,7 +138,7 @@ export default function AdminCreateUserPage() {
                       file:mr-4 file:py-3 file:px-6
                       file:rounded-xl file:border-0
                       file:text-sm file:font-bold
-                      file:bg-gradient-to-r file:from-purple-600 file:to-blue-600
+                      file:bg-gradient-to file:from-purple-600 file:to-blue-600
                       file:text-white
                       hover:file:from-purple-700 hover:file:to-blue-700
                       file:transition-all file:cursor-pointer file:shadow-lg"
@@ -328,7 +328,7 @@ export default function AdminCreateUserPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 px-6 rounded-xl font-bold text-lg hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 shadow-lg hover:shadow-purple-500/50 flex items-center justify-center gap-2"
+                className="flex-1 bg-gradient-to from-purple-600 to-blue-600 text-white py-4 px-6 rounded-xl font-bold text-lg hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 shadow-lg hover:shadow-purple-500/50 flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
@@ -346,7 +346,7 @@ export default function AdminCreateUserPage() {
                 type="button"
                 onClick={() => router.push('/admin/users')}
                 disabled={isSubmitting}
-                className="flex-1 bg-gradient-to-r from-slate-700 to-slate-800 text-white py-4 px-6 rounded-xl font-bold text-lg hover:from-slate-600 hover:to-slate-700 transition-all transform hover:scale-105 border border-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 bg-gradient-to from-slate-700 to-slate-800 text-white py-4 px-6 rounded-xl font-bold text-lg hover:from-slate-600 hover:to-slate-700 transition-all transform hover:scale-105 border border-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 <span>✕</span>
                 <span>Cancel</span>
