@@ -86,7 +86,7 @@ export default function AdminUsersPage() {
 
   if (isLoading && !pagination) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to from-slate-900 via-purple-900 to-slate-900">
         <div className="relative">
           <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-purple-500"></div>
           <div className="absolute inset-0 animate-ping rounded-full h-20 w-20 border-4 border-purple-400 opacity-20"></div>
@@ -97,7 +97,7 @@ export default function AdminUsersPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
         <div className="max-w-md w-full bg-red-500/10 backdrop-blur-xl border border-red-500/50 rounded-2xl p-8 shadow-2xl">
           <div className="flex items-center gap-4">
             <div className="flex-shrink-0 w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
@@ -114,12 +114,12 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to from-slate-900 via-purple-900 to-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
           <div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-3">
+            <h1 className="text-5xl font-bold bg-gradient-to from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-3">
               User Management
             </h1>
             <p className="text-purple-300 text-lg">
@@ -128,7 +128,7 @@ export default function AdminUsersPage() {
           </div>
           <button
             onClick={() => router.push('/admin/users/create')}
-            className="group relative bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-purple-500/50"
+            className="group relative bg-gradient-to from-purple-600 to-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-purple-500/50"
           >
             <span className="flex items-center gap-2">
               <span className="text-2xl">+</span>
@@ -173,7 +173,7 @@ export default function AdminUsersPage() {
         {/* Stats */}
         {pagination && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="group bg-gradient-to-br from-purple-500/10 to-blue-500/10 backdrop-blur-xl border border-purple-500/30 rounded-2xl p-6 hover:border-purple-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20">
+            <div className="group bg-gradient-to from-purple-500/10 to-blue-500/10 backdrop-blur-xl border border-purple-500/30 rounded-2xl p-6 hover:border-purple-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-purple-300 text-sm font-medium uppercase tracking-wider">Total Users</p>
@@ -184,7 +184,7 @@ export default function AdminUsersPage() {
                 </div>
               </div>
             </div>
-            <div className="group bg-gradient-to-br from-pink-500/10 to-purple-500/10 backdrop-blur-xl border border-pink-500/30 rounded-2xl p-6 hover:border-pink-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/20">
+            <div className="group bg-gradient-to from-pink-500/10 to-purple-500/10 backdrop-blur-xl border border-pink-500/30 rounded-2xl p-6 hover:border-pink-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/20">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-pink-300 text-sm font-medium uppercase tracking-wider">Current Page</p>
@@ -197,7 +197,7 @@ export default function AdminUsersPage() {
                 </div>
               </div>
             </div>
-            <div className="group bg-gradient-to-br from-blue-500/10 to-cyan-500/10 backdrop-blur-xl border border-blue-500/30 rounded-2xl p-6 hover:border-blue-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
+            <div className="group bg-gradient-to from-blue-500/10 to-cyan-500/10 backdrop-blur-xl border border-blue-500/30 rounded-2xl p-6 hover:border-blue-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-blue-300 text-sm font-medium uppercase tracking-wider">Showing</p>
@@ -240,7 +240,7 @@ export default function AdminUsersPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gradient-to-r from-purple-900/50 to-blue-900/50">
+                <thead className="bg-gradient-to from-purple-900/50 to-blue-900/50">
                   <tr>
                     <th className="px-6 py-5 text-left text-xs font-bold text-purple-300 uppercase tracking-wider">
                       User
@@ -264,7 +264,7 @@ export default function AdminUsersPage() {
                     <tr key={user._id} className="hover:bg-purple-500/10 transition-colors duration-200">
                       <td className="px-6 py-5">
                         <div className="flex items-center">
-                          <div className="relative h-14 w-14 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold mr-4 shadow-lg">
+                          <div className="relative h-14 w-14 rounded-full bg-gradient-to from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold mr-4 shadow-lg">
                             {user.profilePicture ? (
                               <>
                                 <img
@@ -297,8 +297,8 @@ export default function AdminUsersPage() {
                       <td className="px-6 py-5">
                         <span className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider ${
                           user.role === 'admin'
-                            ? 'bg-gradient-to-r from-pink-500/20 to-red-500/20 text-pink-300 border-2 border-pink-500/50 shadow-lg shadow-pink-500/20'
-                            : 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 border-2 border-blue-500/50 shadow-lg shadow-blue-500/20'
+                            ? 'bg-gradient-to from-pink-500/20 to-red-500/20 text-pink-300 border-2 border-pink-500/50 shadow-lg shadow-pink-500/20'
+                            : 'bg-gradient-to from-blue-500/20 to-cyan-500/20 text-blue-300 border-2 border-blue-500/50 shadow-lg shadow-blue-500/20'
                         }`}>
                           {user.role === 'admin' ? '👑 ' : ''}
                           {user.role}
@@ -356,7 +356,7 @@ export default function AdminUsersPage() {
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={!pagination.hasPrevPage}
-                className="px-6 py-3 bg-gradient-to-r from-purple-600/20 to-blue-600/20 backdrop-blur-sm text-white rounded-xl font-semibold hover:from-purple-600/40 hover:to-blue-600/40 disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-purple-500/30 hover:border-purple-400/50"
+                className="px-6 py-3 bg-gradient-to from-purple-600/20 to-blue-600/20 backdrop-blur-sm text-white rounded-xl font-semibold hover:from-purple-600/40 hover:to-blue-600/40 disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-purple-500/30 hover:border-purple-400/50"
               >
                 ← Previous
               </button>
@@ -381,7 +381,7 @@ export default function AdminUsersPage() {
                       onClick={() => handlePageChange(pageNum)}
                       className={`px-5 py-3 rounded-xl font-bold transition-all border ${
                         pageNum === pagination.currentPage
-                          ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white border-purple-400 shadow-lg shadow-purple-500/50 scale-110'
+                          ? 'bg-gradient-to from-purple-600 to-blue-600 text-white border-purple-400 shadow-lg shadow-purple-500/50 scale-110'
                           : 'bg-purple-600/20 backdrop-blur-sm text-purple-300 border-purple-500/30 hover:bg-purple-600/40 hover:border-purple-400/50'
                       }`}
                     >
@@ -394,7 +394,7 @@ export default function AdminUsersPage() {
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={!pagination.hasNextPage}
-                className="px-6 py-3 bg-gradient-to-r from-purple-600/20 to-blue-600/20 backdrop-blur-sm text-white rounded-xl font-semibold hover:from-purple-600/40 hover:to-blue-600/40 disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-purple-500/30 hover:border-purple-400/50"
+                className="px-6 py-3 bg-gradient-to from-purple-600/20 to-blue-600/20 backdrop-blur-sm text-white rounded-xl font-semibold hover:from-purple-600/40 hover:to-blue-600/40 disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-purple-500/30 hover:border-purple-400/50"
               >
                 Next →
               </button>
@@ -405,7 +405,7 @@ export default function AdminUsersPage() {
         {/* Delete Confirmation Modal */}
         {deleteConfirm && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
-            <div className="bg-gradient-to-br from-slate-900 to-purple-900 border-2 border-red-500/50 rounded-2xl p-8 max-w-md w-full shadow-2xl shadow-red-500/20 animate-in">
+            <div className="bg-gradient-to from-slate-900 to-purple-900 border-2 border-red-500/50 rounded-2xl p-8 max-w-md w-full shadow-2xl shadow-red-500/20 animate-in">
               <div className="text-center mb-6">
                 <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-5xl">⚠️</span>
@@ -418,13 +418,13 @@ export default function AdminUsersPage() {
               <div className="flex gap-4">
                 <button
                   onClick={() => handleDelete(deleteConfirm)}
-                  className="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white py-4 rounded-xl font-bold hover:from-red-700 hover:to-red-800 transition-all transform hover:scale-105 shadow-lg shadow-red-500/30"
+                  className="flex-1 bg-gradient-to from-red-600 to-red-700 text-white py-4 rounded-xl font-bold hover:from-red-700 hover:to-red-800 transition-all transform hover:scale-105 shadow-lg shadow-red-500/30"
                 >
                   Delete User
                 </button>
                 <button
                   onClick={() => setDeleteConfirm(null)}
-                  className="flex-1 bg-gradient-to-r from-slate-700 to-slate-800 text-white py-4 rounded-xl font-bold hover:from-slate-600 hover:to-slate-700 transition-all transform hover:scale-105 border border-purple-500/30"
+                  className="flex-1 bg-gradient-to from-slate-700 to-slate-800 text-white py-4 rounded-xl font-bold hover:from-slate-600 hover:to-slate-700 transition-all transform hover:scale-105 border border-purple-500/30"
                 >
                   Cancel
                 </button>
