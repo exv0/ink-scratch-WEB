@@ -1,9 +1,9 @@
-// app/admin/users/[id]/edit/page.tsx
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { adminService, UpdateUserData } from '@/lib/services/admin.service';
-import { useRouter, useParams } from 'next/navigation';
+import { useState, useEffect, useCallback } from "react";
+import { adminService, UpdateUserData } from "@/lib/services/admin.service";
+import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
 
 interface User {
   _id: string;
@@ -11,11 +11,14 @@ interface User {
   username: string;
   fullName: string;
   phoneNumber: string;
-  gender: 'male' | 'female' | 'other';
-  role: 'user' | 'admin';
+  gender: "male" | "female" | "other";
+  role: "user" | "admin";
   profilePicture?: string;
   bio?: string;
 }
+
+const inputCls = "w-full px-4 py-2.5 text-sm font-medium text-text-primary bg-card border border-divider rounded-xl focus:outline-none focus:ring-2 focus:ring-orange/30 focus:border-orange/40 transition-all placeholder:text-text-secondary/50";
+const labelCls = "block text-[10px] font-black text-text-secondary tracking-widest uppercase mb-1.5";
 
 export default function AdminEditUserPage() {
   const router = useRouter();
@@ -24,57 +27,50 @@ export default function AdminEditUserPage() {
 
   const [user, setUser] = useState<User | null>(null);
   const [formData, setFormData] = useState({
-    fullName: '',
-    phoneNumber: '',
-    gender: 'male' as 'male' | 'female' | 'other',
-    email: '',
-    username: '',
-    bio: '',
-    role: 'user' as 'user' | 'admin',
+    fullName: "", phoneNumber: "",
+    gender: "male" as "male" | "female" | "other",
+    email: "", username: "", bio: "",
+    role: "user" as "user" | "admin",
   });
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const set = (field: string, value: string) => setFormData((p) => ({ ...p, [field]: value }));
 
   const fetchUser = useCallback(async () => {
     try {
       setIsLoading(true);
       const result = await adminService.getUserById(userId);
-      const userData = result.data as User;
-      setUser(userData);
+      const u = result.data as User;
+      setUser(u);
       setFormData({
-        fullName: userData.fullName || '',
-        phoneNumber: userData.phoneNumber || '',
-        gender: userData.gender || 'male',
-        email: userData.email || '',
-        username: userData.username || '',
-        bio: userData.bio || '',
-        role: userData.role || 'user',
+        fullName: u.fullName || "",
+        phoneNumber: u.phoneNumber || "",
+        gender: u.gender || "male",
+        email: u.email || "",
+        username: u.username || "",
+        bio: u.bio || "",
+        role: u.role || "user",
       });
-      setPreviewUrl(userData.profilePicture || null);
+      setPreviewUrl(u.profilePicture || null);
     } catch (err: unknown) {
-      setMessage({ type: 'error', text: (err as Error).message });
+      setMessage({ type: "error", text: (err as Error).message });
     } finally {
       setIsLoading(false);
     }
   }, [userId]);
 
-  useEffect(() => {
-    if (userId) {
-      fetchUser();
-    }
-  }, [fetchUser, userId]);
+  useEffect(() => { if (userId) fetchUser(); }, [fetchUser, userId]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setProfileImage(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
+      reader.onloadend = () => setPreviewUrl(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
@@ -83,333 +79,227 @@ export default function AdminEditUserPage() {
     e.preventDefault();
     setIsSubmitting(true);
     setMessage(null);
-
     try {
       const updateData: UpdateUserData = { ...formData };
-      if (profileImage) {
-        updateData.profileImage = profileImage;
-      }
-
+      if (profileImage) updateData.profileImage = profileImage;
       await adminService.updateUser(userId, updateData);
-      setMessage({ type: 'success', text: 'User updated successfully!' });
-      
-      setTimeout(() => {
-        router.push(`/admin/users/${userId}`);
-      }, 1500);
+      setMessage({ type: "success", text: "User updated successfully!" });
+      setTimeout(() => router.push(`/admin/users/${userId}`), 1500);
     } catch (error: unknown) {
-      setMessage({ type: 'error', text: (error as Error).message || 'Failed to update user' });
+      setMessage({ type: "error", text: (error as Error).message || "Failed to update user" });
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // ── Loading ────────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="relative">
-          <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-purple-500"></div>
-          <div className="absolute inset-0 animate-ping rounded-full h-20 w-20 border-4 border-purple-400 opacity-20"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <span className="bg-linear-to-r from-orange via-red to-orange bg-clip-text text-transparent text-2xl font-black animate-pulse">
+            Ink Scratch
+          </span>
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-2 h-2 bg-orange rounded-full animate-bounce [animation-delay:0ms]" />
+            <div className="w-2 h-2 bg-orange rounded-full animate-bounce [animation-delay:150ms]" />
+            <div className="w-2 h-2 bg-red rounded-full animate-bounce [animation-delay:300ms]" />
+          </div>
         </div>
       </div>
     );
   }
 
+  // ── User not found ─────────────────────────────────────────────────────────
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
-        <div className="max-w-md w-full bg-red-500/10 backdrop-blur-xl border border-red-500/50 rounded-2xl p-8 shadow-2xl">
-          <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
-              <span className="text-red-400 text-2xl">⚠</span>
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-white mb-1">Error</h3>
-              <p className="text-red-300">User not found</p>
-            </div>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="bg-white rounded-3xl shadow-sm border border-divider p-10 max-w-md w-full text-center">
+          <p className="text-4xl mb-4">⚠️</p>
+          <h3 className="text-xl font-black text-text-primary mb-2">User not found</h3>
+          <button
+            onClick={() => router.push("/admin/users")}
+            className="mt-2 px-6 py-2.5 bg-linear-to-r from-orange to-red text-white font-black text-sm rounded-xl shadow-md shadow-orange/20 hover:scale-105 transition-all"
+          >
+            Back to Users
+          </button>
         </div>
       </div>
     );
   }
 
+  const initials = (previewUrl ? user.fullName : formData.fullName)?.[0]?.toUpperCase() ?? "?";
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-12">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back Button */}
+    <div className="min-h-screen bg-gray-50 pb-16">
+
+      {/* ── Hero ──────────────────────────────────────────────────────────────── */}
+      <div className="relative bg-linear-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] overflow-hidden">
+        <div className="absolute top-0 right-0 w-72 h-72 bg-orange/10 rounded-full blur-3xl -translate-y-1/3 translate-x-1/4 pointer-events-none" />
+        <div className="relative max-w-3xl mx-auto px-6 py-10">
+          <nav className="flex items-center gap-2 text-xs text-white/40 font-semibold mb-5">
+            <Link href="/dashboard" className="hover:text-white/70 transition-colors">Dashboard</Link>
+            <span>›</span>
+            <Link href="/admin/users" className="hover:text-white/70 transition-colors">Users</Link>
+            <span>›</span>
+            <Link href={`/admin/users/${userId}`} className="hover:text-white/70 transition-colors">{user.fullName}</Link>
+            <span>›</span>
+            <span className="text-white/70">Edit</span>
+          </nav>
+          <p className="text-orange/80 text-xs font-black tracking-widest uppercase mb-1">Admin Panel</p>
+          <h1 className="text-3xl font-black text-white mb-1">Edit User Profile</h1>
+          <p className="text-white/40 text-sm">Update information and permissions for @{user.username}</p>
+        </div>
+      </div>
+
+      {/* ── Form ──────────────────────────────────────────────────────────────── */}
+      <div className="max-w-3xl mx-auto px-6 py-8">
+
         <button
           onClick={() => router.push(`/admin/users/${userId}`)}
-          className="group flex items-center gap-2 text-purple-300 hover:text-white mb-8 transition-all duration-300"
+          className="flex items-center gap-1.5 text-sm font-bold text-text-secondary hover:text-orange transition-colors mb-6"
         >
-          <span className="transform group-hover:-translate-x-1 transition-transform text-xl">←</span>
-          <span className="font-semibold">Back to User Profile</span>
+          ← Back to User Profile
         </button>
 
-        {/* Form Card */}
-        <div className="bg-white/5 backdrop-blur-xl border border-purple-500/30 rounded-2xl p-8 md:p-10 shadow-2xl">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-3">
-              Edit User Profile
-            </h1>
-            <p className="text-purple-300 text-lg">Update user information and permissions</p>
-          </div>
+        <div className="bg-white rounded-3xl border border-divider shadow-sm overflow-hidden">
 
-          {/* Success/Error Message */}
+          {/* Alert */}
           {message && (
-            <div className={`mb-6 p-5 rounded-xl border-2 backdrop-blur-sm ${
-              message.type === 'success'
-                ? 'bg-green-500/10 border-green-500/50 text-green-300'
-                : 'bg-red-500/10 border-red-500/50 text-red-300'
+            <div className={`mx-6 mt-6 p-4 rounded-2xl text-sm font-semibold flex items-center gap-2 ${
+              message.type === "success"
+                ? "bg-green-50 text-green-700 border border-green-200"
+                : "bg-red/5 text-red border border-red/20"
             }`}>
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{message.type === 'success' ? '✓' : '⚠'}</span>
-                <span className="font-medium">{message.text}</span>
-              </div>
+              {message.type === "success" ? "✅" : "❌"} {message.text}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Profile Picture */}
-            <div className="bg-gradient-to-br from-purple-500/5 to-blue-500/5 border border-purple-500/20 rounded-xl p-6">
-              <label className="block text-sm font-bold text-purple-300 mb-4 uppercase tracking-wider">
-                Profile Picture
-              </label>
-              
-              <div className="flex flex-col md:flex-row items-center gap-6">
-                {/* Preview */}
-                <div className="flex-shrink-0">
+          <form onSubmit={handleSubmit}>
+
+            {/* ── Profile Picture ─────────────────────────────────────────────── */}
+            <section className="px-6 pt-6 pb-6 border-b border-divider">
+              <p className={labelCls}>Profile Picture</p>
+              <div className="flex items-center gap-5">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-divider shrink-0">
                   {previewUrl ? (
-                    <div className="relative">
-                      <img
-                        src={previewUrl}
-                        alt="Profile preview"
-                        className="w-32 h-32 rounded-full object-cover shadow-xl"
-                      />
-                      <div className="absolute inset-0 rounded-full ring-4 ring-purple-400/50"></div>
-                    </div>
+                    <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-xl">
-                      <span className="text-white text-5xl">
-                        {user.username.charAt(0).toUpperCase()}
-                      </span>
+                    <div className="w-full h-full bg-linear-to-br from-orange to-red flex items-center justify-center">
+                      <span className="text-white font-black text-xl">{initials}</span>
                     </div>
                   )}
                 </div>
-
-                {/* Upload */}
-                <div className="flex-1 w-full">
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/jpg,image/png"
-                    onChange={handleImageChange}
-                    className="block w-full text-sm text-purple-300
-                      file:mr-4 file:py-3 file:px-6
-                      file:rounded-xl file:border-0
-                      file:text-sm file:font-bold
-                      file:bg-gradient-to-r file:from-purple-600 file:to-blue-600
-                      file:text-white
-                      hover:file:from-purple-700 hover:file:to-blue-700
-                      file:transition-all file:cursor-pointer file:shadow-lg"
-                  />
-                  <p className="mt-3 text-sm text-purple-400 flex items-center gap-2">
-                    <span>💡</span>
-                    <span>JPG, JPEG or PNG. Max size 5MB.</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Personal Information Section */}
-            <div className="space-y-5">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <span className="text-purple-400">👤</span>
-                Personal Information
-              </h3>
-
-              {/* Full Name */}
-              <div>
-                <label htmlFor="fullName" className="block text-sm font-bold text-purple-300 mb-2 uppercase tracking-wide">
-                  Full Name *
+                <label className="cursor-pointer">
+                  <span className="block px-4 py-2 text-sm font-bold text-orange border-2 border-orange/30 rounded-xl hover:bg-orange/5 hover:border-orange/60 transition-all">
+                    Change Photo
+                  </span>
+                  <input type="file" accept="image/jpeg,image/jpg,image/png" onChange={handleImageChange} className="hidden" />
                 </label>
-                <input
-                  type="text"
-                  id="fullName"
-                  value={formData.fullName}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/30 rounded-xl text-white placeholder-purple-300/30 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  placeholder="Enter full name"
-                  required
-                />
+                <p className="text-xs text-text-secondary">JPG or PNG, max 5MB</p>
+              </div>
+            </section>
+
+            {/* ── Personal Information ────────────────────────────────────────── */}
+            <section className="px-6 py-6 border-b border-divider space-y-4">
+              <p className={labelCls}>Personal Information</p>
+
+              <div>
+                <label className={labelCls}>Full Name *</label>
+                <input type="text" value={formData.fullName} onChange={(e) => set("fullName", e.target.value)} className={inputCls} placeholder="Full name" required />
               </div>
 
-              {/* Email & Username Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-bold text-purple-300 mb-2 uppercase tracking-wide">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/30 rounded-xl text-white placeholder-purple-300/30 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                    placeholder="user@example.com"
-                    required
-                  />
+                  <label className={labelCls}>Email *</label>
+                  <input type="email" value={formData.email} onChange={(e) => set("email", e.target.value)} className={inputCls} placeholder="user@example.com" required />
                 </div>
-
                 <div>
-                  <label htmlFor="username" className="block text-sm font-bold text-purple-300 mb-2 uppercase tracking-wide">
-                    Username *
-                  </label>
-                  <input
-                    type="text"
-                    id="username"
-                    value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/30 rounded-xl text-white placeholder-purple-300/30 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                    placeholder="username"
-                    required
-                  />
+                  <label className={labelCls}>Username *</label>
+                  <input type="text" value={formData.username} onChange={(e) => set("username", e.target.value)} className={inputCls} placeholder="username" required />
                 </div>
               </div>
 
-              {/* Phone & Gender Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="phoneNumber" className="block text-sm font-bold text-purple-300 mb-2 uppercase tracking-wide">
-                    Phone Number *
-                  </label>
-                  <input
-                    type="tel"
-                    id="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/30 rounded-xl text-white placeholder-purple-300/30 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                    placeholder="+1 (555) 000-0000"
-                    required
-                  />
+                  <label className={labelCls}>Phone Number *</label>
+                  <input type="tel" value={formData.phoneNumber} onChange={(e) => set("phoneNumber", e.target.value)} className={inputCls} placeholder="+1 (555) 000-0000" required />
                 </div>
-
                 <div>
-                  <label htmlFor="gender" className="block text-sm font-bold text-purple-300 mb-2 uppercase tracking-wide">
-                    Gender *
-                  </label>
-                  <select
-                    id="gender"
-                    value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as 'male' | 'female' | 'other' })}
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/30 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all cursor-pointer"
-                    required
-                  >
+                  <label className={labelCls}>Gender *</label>
+                  <select value={formData.gender} onChange={(e) => set("gender", e.target.value)} className={inputCls} required>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
                     <option value="other">Other</option>
                   </select>
                 </div>
               </div>
-            </div>
+            </section>
 
-            {/* Account Settings Section */}
-            <div className="space-y-5 pt-6 border-t border-purple-500/20">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <span className="text-purple-400">⚙️</span>
-                Account Settings
-              </h3>
-
-              {/* Role */}
+            {/* ── Account Settings ────────────────────────────────────────────── */}
+            <section className="px-6 py-6 border-b border-divider space-y-4">
+              <p className={labelCls}>Account Settings</p>
               <div>
-                <label htmlFor="role" className="block text-sm font-bold text-purple-300 mb-2 uppercase tracking-wide">
-                  Role *
-                </label>
-                <select
-                  id="role"
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value as 'user' | 'admin' })}
-                  className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/30 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all cursor-pointer"
-                  required
-                >
+                <label className={labelCls}>Role *</label>
+                <select value={formData.role} onChange={(e) => set("role", e.target.value)} className={inputCls} required>
                   <option value="user">👤 User</option>
                   <option value="admin">👑 Admin</option>
                 </select>
-                <p className="mt-2 text-sm text-purple-400 flex items-center gap-2">
-                  <span>ℹ️</span>
-                  <span>Admins have full access to the admin panel</span>
-                </p>
+                <p className="text-xs text-text-secondary mt-1.5">Admins have full access to the admin panel</p>
               </div>
-            </div>
+            </section>
 
-            {/* Bio Section */}
-            <div className="space-y-5 pt-6 border-t border-purple-500/20">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <span className="text-purple-400">✍️</span>
-                Bio
-              </h3>
-
+            {/* ── Bio ─────────────────────────────────────────────────────────── */}
+            <section className="px-6 py-6 border-b border-divider space-y-4">
+              <p className={labelCls}>Bio</p>
               <div>
-                <label htmlFor="bio" className="block text-sm font-bold text-purple-300 mb-2 uppercase tracking-wide">
-                  User Bio (Optional)
-                </label>
+                <label className={labelCls}>User Bio (Optional)</label>
                 <textarea
-                  id="bio"
                   value={formData.bio}
-                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  onChange={(e) => set("bio", e.target.value)}
                   maxLength={160}
                   rows={4}
-                  className="w-full px-4 py-3 bg-slate-900/50 border border-purple-500/30 rounded-xl text-white placeholder-purple-300/30 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
-                  placeholder="Tell us about this user..."
+                  className={`${inputCls} resize-none`}
+                  placeholder="Tell us about this user…"
                 />
-                <div className="mt-2 flex items-center justify-between">
-                  <p className="text-sm text-purple-400 flex items-center gap-2">
-                    <span>💬</span>
-                    <span>A brief description about the user</span>
-                  </p>
-                  <p className="text-sm text-purple-400 font-mono">
+                <div className="flex justify-between mt-1.5">
+                  <p className="text-xs text-text-secondary">A brief description about the user</p>
+                  <p className={`text-xs font-semibold ${formData.bio.length > 140 ? "text-red" : "text-text-secondary"}`}>
                     {formData.bio.length}/160
                   </p>
                 </div>
               </div>
-            </div>
+            </section>
 
-            {/* Submit Buttons */}
-            <div className="flex flex-col md:flex-row gap-4 pt-8">
+            {/* ── Actions ─────────────────────────────────────────────────────── */}
+            <div className="px-6 py-5 flex gap-3">
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 px-6 rounded-xl font-bold text-lg hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 shadow-lg hover:shadow-purple-500/50 flex items-center justify-center gap-2"
+                className="flex-1 py-3 bg-linear-to-r from-orange to-red text-white font-black text-sm rounded-2xl shadow-md shadow-orange/20 hover:shadow-orange/30 hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200 flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
-                    <span>Updating User...</span>
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Saving…
                   </>
-                ) : (
-                  <>
-                    <span>💾</span>
-                    <span>Save Changes</span>
-                  </>
-                )}
+                ) : "💾 Save Changes"}
               </button>
               <button
                 type="button"
                 onClick={() => router.push(`/admin/users/${userId}`)}
                 disabled={isSubmitting}
-                className="flex-1 bg-gradient-to-r from-slate-700 to-slate-800 text-white py-4 px-6 rounded-xl font-bold text-lg hover:from-slate-600 hover:to-slate-700 transition-all transform hover:scale-105 border border-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 py-3 bg-card text-text-primary font-black text-sm rounded-2xl border border-divider hover:bg-divider transition-colors disabled:opacity-50"
               >
-                <span>✕</span>
-                <span>Cancel</span>
+                Cancel
               </button>
             </div>
           </form>
         </div>
 
-        {/* Help Text */}
-        <div className="mt-6 text-center">
-          <p className="text-purple-400 text-sm">
-            Fields marked with <span className="text-pink-400 font-bold">*</span> are required
-          </p>
-        </div>
+        <p className="text-center text-xs text-text-secondary mt-4">
+          Fields marked with <span className="text-red font-black">*</span> are required
+        </p>
       </div>
     </div>
   );
