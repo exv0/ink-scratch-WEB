@@ -1,9 +1,9 @@
-// app/admin/users/[id]/page.tsx
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { adminService } from '@/lib/services/admin.service';
-import { useRouter, useParams } from 'next/navigation';
+import { useState, useEffect, useCallback } from "react";
+import { adminService } from "@/lib/services/admin.service";
+import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
 
 interface User {
   _id: string;
@@ -11,12 +11,21 @@ interface User {
   username: string;
   fullName: string;
   phoneNumber: string;
-  gender: 'male' | 'female' | 'other';
-  role: 'user' | 'admin';
+  gender: "male" | "female" | "other";
+  role: "user" | "admin";
   profilePicture?: string;
   bio?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+function Field({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="p-4 bg-card rounded-2xl">
+      <p className="text-[10px] font-black text-text-secondary tracking-widest uppercase mb-1">{label}</p>
+      <p className="text-sm font-semibold text-text-primary">{value || "—"}</p>
+    </div>
+  );
 }
 
 export default function AdminUserDetailPage() {
@@ -40,18 +49,20 @@ export default function AdminUserDetailPage() {
     }
   }, [userId]);
 
-  useEffect(() => {
-    if (userId) {
-      fetchUser();
-    }
-  }, [fetchUser, userId]);
+  useEffect(() => { if (userId) fetchUser(); }, [fetchUser, userId]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="relative">
-          <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-purple-500"></div>
-          <div className="absolute inset-0 animate-ping rounded-full h-20 w-20 border-4 border-purple-400 opacity-20"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <span className="bg-linear-to-r from-orange via-red to-orange bg-clip-text text-transparent text-2xl font-black animate-pulse">
+            Ink Scratch
+          </span>
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-2 h-2 bg-orange rounded-full animate-bounce [animation-delay:0ms]" />
+            <div className="w-2 h-2 bg-orange rounded-full animate-bounce [animation-delay:150ms]" />
+            <div className="w-2 h-2 bg-red rounded-full animate-bounce [animation-delay:300ms]" />
+          </div>
         </div>
       </div>
     );
@@ -59,210 +70,151 @@ export default function AdminUserDetailPage() {
 
   if (error || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
-        <div className="max-w-md w-full bg-red-500/10 backdrop-blur-xl border border-red-500/50 rounded-2xl p-8 shadow-2xl">
-          <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
-              <span className="text-red-400 text-2xl">⚠</span>
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-white mb-1">Error</h3>
-              <p className="text-red-300">{error || 'User not found'}</p>
-            </div>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="bg-white rounded-3xl shadow-sm border border-divider p-10 max-w-md w-full text-center">
+          <p className="text-4xl mb-4">⚠️</p>
+          <h3 className="text-xl font-black text-text-primary mb-2">User not found</h3>
+          <p className="text-text-secondary text-sm mb-6">{error}</p>
+          <button
+            onClick={() => router.push("/admin/users")}
+            className="px-6 py-2.5 bg-linear-to-r from-orange to-red text-white font-black text-sm rounded-xl shadow-md shadow-orange/20 hover:scale-105 transition-all"
+          >
+            Back to Users
+          </button>
         </div>
       </div>
     );
   }
 
+  const initials = user.fullName?.[0]?.toUpperCase() ?? "?";
+  const formatDate = (d: string) =>
+    new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back Button */}
-        <button
-          onClick={() => router.push('/admin/users')}
-          className="group flex items-center gap-2 text-purple-300 hover:text-white mb-8 transition-all duration-300"
-        >
-          <span className="transform group-hover:-translate-x-1 transition-transform text-xl">←</span>
-          <span className="font-semibold">Back to Users</span>
-        </button>
+    <div className="min-h-screen bg-gray-50 pb-16">
 
-        {/* User Profile Card */}
-        <div className="bg-white/5 backdrop-blur-xl border border-purple-500/30 rounded-2xl overflow-hidden shadow-2xl">
-          {/* Header Section with Gradient Background */}
-          <div className="relative bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 p-8 md:p-12">
-            {/* Decorative Pattern Overlay */}
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute inset-0" style={{
-                backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
-                backgroundSize: '40px 40px'
-              }}></div>
-            </div>
+      {/* ── Hero ──────────────────────────────────────────────────────────────── */}
+      <div className="relative bg-linear-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] overflow-hidden">
+        <div className="absolute top-0 right-0 w-72 h-72 bg-orange/10 rounded-full blur-3xl -translate-y-1/3 translate-x-1/4 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-56 h-56 bg-red/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
 
-            <div className="relative flex flex-col md:flex-row items-center md:items-start justify-between gap-6">
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-6 flex-1">
-                {/* Profile Picture */}
-                <div className="relative group">
-                  <div className="h-28 w-28 rounded-full bg-white/10 backdrop-blur-sm border-4 border-white/40 flex items-center justify-center overflow-hidden shadow-2xl group-hover:scale-105 transition-transform duration-300">
-                    {user.profilePicture ? (
-                      <img
-                        src={user.profilePicture}
-                        alt={user.username}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-5xl font-bold text-white">
-                        {user.username.charAt(0).toUpperCase()}
-                      </span>
-                    )}
+        <div className="relative max-w-4xl mx-auto px-6 py-10">
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-2 text-xs text-white/40 font-semibold mb-6">
+            <Link href="/dashboard" className="hover:text-white/70 transition-colors">Dashboard</Link>
+            <span>›</span>
+            <Link href="/admin/users" className="hover:text-white/70 transition-colors">Users</Link>
+            <span>›</span>
+            <span className="text-white/70">{user.fullName}</span>
+          </nav>
+
+          {/* User identity */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6">
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 rounded-2xl overflow-hidden border-4 border-white/20 shrink-0">
+                {user.profilePicture ? (
+                  <img src={user.profilePicture} alt={user.username} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-linear-to-br from-orange to-red flex items-center justify-center">
+                    <span className="text-white text-2xl font-black">{initials}</span>
                   </div>
-                  <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-green-500 rounded-full border-4 border-white flex items-center justify-center shadow-lg">
-                    <span className="text-white text-xs font-bold">✓</span>
-                  </div>
-                </div>
-
-                {/* User Info */}
-                <div className="text-center md:text-left">
-                  <h1 className="text-4xl font-bold text-white mb-2">{user.fullName}</h1>
-                  <p className="text-purple-100 text-lg mb-3">@{user.username}</p>
-                  <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider shadow-lg ${
-                    user.role === 'admin'
-                      ? 'bg-pink-500/30 text-white border-2 border-white/50'
-                      : 'bg-blue-500/30 text-white border-2 border-white/50'
+                )}
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <h1 className="text-2xl font-black text-white">{user.fullName}</h1>
+                  <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full tracking-widest uppercase ${
+                    user.role === "admin"
+                      ? "bg-linear-to-r from-orange to-red text-white"
+                      : "bg-white/15 text-white/70"
                   }`}>
-                    <span>{user.role === 'admin' ? '👑' : '👤'}</span>
-                    {user.role}
+                    {user.role === "admin" ? "👑 " : "👤 "}{user.role}
                   </span>
                 </div>
+                <p className="text-white/50 text-sm font-semibold">@{user.username}</p>
+                <p className="text-white/40 text-xs mt-0.5">{user.email}</p>
               </div>
-
-              {/* Edit Button */}
-              <button
-                onClick={() => router.push(`/admin/users/${userId}/edit`)}
-                className="bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-xl font-bold hover:bg-white/30 transition-all transform hover:scale-105 border border-white/30 shadow-lg flex items-center gap-2"
-              >
-                <span>✏️</span>
-                <span>Edit User</span>
-              </button>
             </div>
+
+            <button
+              onClick={() => router.push(`/admin/users/${userId}/edit`)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur border border-white/20 text-white font-black text-sm rounded-xl hover:bg-white/20 transition-all self-start sm:self-auto"
+            >
+              ✏️ Edit User
+            </button>
           </div>
+        </div>
+      </div>
 
-          {/* Details Section */}
-          <div className="p-8 md:p-10 space-y-8">
-            {/* Contact Information */}
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-5 flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
-                  <span className="text-purple-400 text-xl">📧</span>
-                </div>
-                Contact Information
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 backdrop-blur-sm border border-purple-500/30 rounded-xl p-5 hover:border-purple-400/50 transition-all">
-                  <p className="text-purple-300 text-sm font-bold mb-2 uppercase tracking-wider">Email Address</p>
-                  <p className="text-white text-lg font-semibold break-all">{user.email}</p>
-                </div>
-                <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 backdrop-blur-sm border border-blue-500/30 rounded-xl p-5 hover:border-blue-400/50 transition-all">
-                  <p className="text-blue-300 text-sm font-bold mb-2 uppercase tracking-wider">Phone Number</p>
-                  <p className="text-white text-lg font-semibold">{user.phoneNumber}</p>
-                </div>
-              </div>
-            </div>
+      {/* ── Content ───────────────────────────────────────────────────────────── */}
+      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
 
-            {/* Personal Information */}
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-5 flex items-center gap-3">
-                <div className="w-10 h-10 bg-pink-500/20 rounded-xl flex items-center justify-center">
-                  <span className="text-pink-400 text-xl">👤</span>
-                </div>
-                Personal Information
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gradient-to-br from-pink-500/10 to-purple-500/10 backdrop-blur-sm border border-pink-500/30 rounded-xl p-5 hover:border-pink-400/50 transition-all">
-                  <p className="text-pink-300 text-sm font-bold mb-2 uppercase tracking-wider">Gender</p>
-                  <p className="text-white text-lg font-semibold capitalize">{user.gender}</p>
-                </div>
-                <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 backdrop-blur-sm border border-green-500/30 rounded-xl p-5 hover:border-green-400/50 transition-all">
-                  <p className="text-green-300 text-sm font-bold mb-2 uppercase tracking-wider">Account Status</p>
-                  <p className="text-white text-lg font-semibold flex items-center gap-2">
-                    <span className="relative flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                    </span>
-                    Active
-                  </p>
-                </div>
-              </div>
-            </div>
+        {/* Back */}
+        <button
+          onClick={() => router.push("/admin/users")}
+          className="flex items-center gap-1.5 text-sm font-bold text-text-secondary hover:text-orange transition-colors"
+        >
+          ← Back to Users
+        </button>
 
-            {/* Bio Section */}
-            {user.bio && (
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-5 flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                    <span className="text-blue-400 text-xl">✍️</span>
-                  </div>
-                  Bio
-                </h2>
-                <div className="bg-gradient-to-br from-slate-800/50 to-purple-900/30 backdrop-blur-sm border border-purple-500/30 rounded-xl p-6 hover:border-purple-400/50 transition-all">
-                  <p className="text-white text-lg leading-relaxed">{user.bio}</p>
-                </div>
-              </div>
-            )}
+        {/* Contact Info */}
+        <div className="bg-white rounded-3xl border border-divider shadow-sm p-6">
+          <p className="text-[10px] font-black text-text-secondary tracking-widest uppercase mb-4">Contact Information</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Field label="Email Address" value={user.email} />
+            <Field label="Phone Number" value={user.phoneNumber} />
+          </div>
+        </div>
 
-            {/* Account Timeline */}
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-5 flex items-center gap-3">
-                <div className="w-10 h-10 bg-cyan-500/20 rounded-xl flex items-center justify-center">
-                  <span className="text-cyan-400 text-xl">📅</span>
-                </div>
-                Account Timeline
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 backdrop-blur-sm border border-cyan-500/30 rounded-xl p-5 hover:border-cyan-400/50 transition-all">
-                  <p className="text-cyan-300 text-sm font-bold mb-2 uppercase tracking-wider">Created At</p>
-                  <p className="text-white text-lg font-semibold">
-                    {new Date(user.createdAt).toLocaleDateString('en-US', { 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </p>
-                </div>
-                <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-sm border border-purple-500/30 rounded-xl p-5 hover:border-purple-400/50 transition-all">
-                  <p className="text-purple-300 text-sm font-bold mb-2 uppercase tracking-wider">Last Updated</p>
-                  <p className="text-white text-lg font-semibold">
-                    {new Date(user.updatedAt).toLocaleDateString('en-US', { 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </p>
-                </div>
-              </div>
+        {/* Personal Info */}
+        <div className="bg-white rounded-3xl border border-divider shadow-sm p-6">
+          <p className="text-[10px] font-black text-text-secondary tracking-widest uppercase mb-4">Personal Information</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <Field label="Full Name" value={user.fullName} />
+            <Field label="Gender" value={user.gender} />
+            <div className="p-4 bg-card rounded-2xl">
+              <p className="text-[10px] font-black text-text-secondary tracking-widest uppercase mb-1">Account Status</p>
+              <p className="text-sm font-semibold text-text-primary flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
+                </span>
+                Active
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="mt-8 flex flex-col sm:flex-row gap-4">
+        {/* Bio */}
+        {user.bio && (
+          <div className="bg-white rounded-3xl border border-divider shadow-sm p-6">
+            <p className="text-[10px] font-black text-text-secondary tracking-widest uppercase mb-3">Bio</p>
+            <p className="text-sm text-text-primary leading-relaxed">{user.bio}</p>
+          </div>
+        )}
+
+        {/* Timeline */}
+        <div className="bg-white rounded-3xl border border-divider shadow-sm p-6">
+          <p className="text-[10px] font-black text-text-secondary tracking-widest uppercase mb-4">Account Timeline</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Field label="Created At" value={formatDate(user.createdAt)} />
+            <Field label="Last Updated" value={formatDate(user.updatedAt)} />
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex gap-3">
           <button
             onClick={() => router.push(`/admin/users/${userId}/edit`)}
-            className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 px-6 rounded-xl font-bold hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-purple-500/50 flex items-center justify-center gap-2"
+            className="flex-1 py-3 bg-linear-to-r from-orange to-red text-white font-black text-sm rounded-2xl shadow-md shadow-orange/20 hover:shadow-orange/30 hover:scale-[1.01] transition-all duration-200"
           >
-            <span>✏️</span>
-            <span>Edit User Profile</span>
+            ✏️ Edit User Profile
           </button>
           <button
-            onClick={() => router.push('/admin/users')}
-            className="flex-1 bg-gradient-to-r from-slate-700 to-slate-800 text-white py-4 px-6 rounded-xl font-bold hover:from-slate-600 hover:to-slate-700 transition-all transform hover:scale-105 border border-purple-500/30 flex items-center justify-center gap-2"
+            onClick={() => router.push("/admin/users")}
+            className="flex-1 py-3 bg-white text-text-primary font-black text-sm rounded-2xl border border-divider hover:bg-card transition-colors"
           >
-            <span>📋</span>
-            <span>Back to All Users</span>
+            ← Back to All Users
           </button>
         </div>
       </div>
