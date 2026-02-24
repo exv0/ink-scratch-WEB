@@ -1,7 +1,6 @@
 // backend/src/services/email.service.ts - UPDATED WITH DEV MODE
 
-import nodemailer from 'nodemailer';
-
+import * as nodemailer from 'nodemailer';
 export class EmailService {
   private transporter: nodemailer.Transporter | null = null;
   private isDevelopment: boolean;
