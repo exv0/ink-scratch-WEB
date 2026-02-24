@@ -8,7 +8,9 @@ import path from "path";
 import { connectDatabase } from "./database/mongodb";
 import { PORT } from "./config";
 import authRoutes from "./routes/auth.routes";
-import adminRoutes from "./routes/admin.routes"; // ✅ Import admin routes
+import adminRoutes from "./routes/admin.routes";
+import mangaRoutes from "./routes/manga.routes";
+import { runMangaImportJob } from "./jobs/manga.importer";
 
 dotenv.config();
 
@@ -29,7 +31,8 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/admin", adminRoutes); // ✅ Register admin routes
+app.use("/api/admin", adminRoutes);
+app.use("/api/manga", mangaRoutes);
 
 async function startServer() {
   try {
@@ -39,6 +42,12 @@ async function startServer() {
     app.listen(PORT, () => {
       console.log(`Server running at http://localhost:${PORT}`);
     });
+
+    // Run once on startup, then every 24 hours
+    console.log("[Importer] Scheduling manga import job...");
+    runMangaImportJob().catch(console.error);
+    setInterval(() => runMangaImportJob().catch(console.error), 24 * 60 * 60 * 1000);
+
   } catch (error) {
     console.error("Server startup failed:", error);
     process.exit(1);
