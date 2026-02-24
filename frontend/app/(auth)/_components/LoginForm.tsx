@@ -10,6 +10,7 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { authService } from "@/lib/services/auth.service";
 import { cookieUtils } from "@/lib/cookies";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -17,6 +18,7 @@ export default function LoginForm() {
   const [error, setError] = useState<string>("");
 
   const router = useRouter();
+  const { refreshAuth } = useAuth();
 
   const {
     register,
@@ -37,7 +39,8 @@ export default function LoginForm() {
       cookieUtils.setToken(result.token, rememberMe);
       cookieUtils.setUser(result.data, rememberMe);
 
-      console.log("Login successful:", result);
+      // Sync AuthContext with the new token before navigating
+      refreshAuth();
       
       // Redirect to dashboard
       router.push("/dashboard");
