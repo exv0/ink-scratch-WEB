@@ -1,4 +1,4 @@
-// backend/src/models/user.model.ts - FIXED VERSION
+// backend/src/models/user.model.ts
 
 import mongoose, { Document, Schema } from "mongoose";
 import { UserType } from '../types/user.type';
@@ -9,7 +9,7 @@ const UserSchema: Schema = new Schema(
         password: { type: String, required: true },
         username: { type: String, required: true, unique: true },
         fullName: { type: String },
-        phoneNumber: { type: String }, // ✅ FIXED: Changed from Number to String to match DTO
+        phoneNumber: { type: String },
         gender: { type: String, enum: ['male', 'female', 'other'] },
         profilePicture: { type: String },
         bio: { type: String, maxLength: 160 },
@@ -18,27 +18,33 @@ const UserSchema: Schema = new Schema(
             enum: ['user', 'admin'],
             default: 'user',
         },
-        // ✅ Password reset fields
+        // ✅ Theme preference — persisted per account, synced across devices
+        theme: {
+            type: String,
+            enum: ['light', 'dark', 'system'],
+            default: 'system',
+        },
+        // Password reset fields
         resetPasswordToken: { type: String },
         resetPasswordExpires: { type: Date },
     },
     {
-        timestamps: true, // auto createdAt and updatedAt
+        timestamps: true,
     }
 );
 
-// ✅ FIXED: Proper interface that extends both UserType and Document
 export interface IUser extends Document {
     _id: mongoose.Types.ObjectId;
     email: string;
     password: string;
     username: string;
     fullName?: string;
-    phoneNumber?: string; // ✅ String type to match DTO
+    phoneNumber?: string;
     gender: 'male' | 'female' | 'other';
     profilePicture?: string;
     bio?: string;
     role: 'user' | 'admin';
+    theme: 'light' | 'dark' | 'system';
     resetPasswordToken?: string;
     resetPasswordExpires?: Date;
     createdAt: Date;
