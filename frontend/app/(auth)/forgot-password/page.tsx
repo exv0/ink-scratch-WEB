@@ -1,4 +1,4 @@
-// app/(auth)/forgot-password/page.tsx - UPDATED VERSION
+// app/(auth)/forgot-password/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -7,110 +7,135 @@ import { authService } from "@/lib/services/auth.service";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [emailSent, setEmailSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim()) return;
+
+    setError("");
     setIsLoading(true);
-    setMessage(null);
 
     try {
-      const result = await authService.forgotPassword(email);
-      setMessage({ type: 'success', text: result.message });
-      setEmailSent(true);
-    } catch (error: unknown) {
-      setMessage({ type: 'error', text: (error as Error).message });
+      await authService.forgotPassword(email.trim());
+      setSubmitted(true);
+    } catch (err: any) {
+      setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <div className="text-center mb-8">
-          <h1 className="logo-gradient mb-2">Reset Password</h1>
-          <p className="text-text-secondary">
-            {emailSent 
-              ? "Check your email for reset instructions"
-              : "Enter your email and we'll send you a link to reset your password"}
-          </p>
+  if (submitted) {
+    return (
+      <div className="fade-up" style={{ textAlign: "center" }}>
+        {/* Success icon */}
+        <div style={{
+          width: "4rem",
+          height: "4rem",
+          borderRadius: "50%",
+          background: "rgba(34,197,94,0.1)",
+          border: "2px solid rgba(34,197,94,0.3)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0 auto 1.5rem",
+        }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth={2} style={{ width: "1.75rem", height: "1.75rem" }}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
         </div>
 
-        {message && (
-          <div className={`mb-6 p-4 rounded-lg border ${
-            message.type === 'success'
-              ? 'bg-green-900/20 border-green-500 text-green-300'
-              : 'bg-red-900/20 border-red-500 text-red-300'
-          }`}>
-            {message.text}
-          </div>
-        )}
+        <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2rem", letterSpacing: "0.04em", color: "var(--text-primary)", marginBottom: "0.75rem" }}>
+          CHECK YOUR EMAIL
+        </h1>
+        <p style={{ color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: "0.5rem" }}>
+          If <strong style={{ color: "var(--text-primary)" }}>{email}</strong> is registered, we've sent a password reset link.
+        </p>
+        <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", marginBottom: "2rem" }}>
+          The link expires in 1 hour. Check your spam folder if you don't see it.
+        </p>
 
-        {!emailSent ? (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-purple-300 mb-2">
-                Email Address
-              </label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                className="input-field"
-                required
-                disabled={isLoading}
-              />
-            </div>
+        <Link href="/login">
+          <button className="btn-primary">
+            <span>Back to Log In</span>
+          </button>
+        </Link>
 
-            <button 
-              type="submit" 
-              className="btn-primary w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Sending...' : 'Send Reset Link'}
-            </button>
-
-            <div className="text-center">
-              <Link href="/login" className="text-orange font-medium hover:underline">
-                ← Back to Login
-              </Link>
-            </div>
-          </form>
-        ) : (
-          <div className="space-y-6">
-            <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-6 text-center">
-              <div className="text-5xl mb-4">📧</div>
-              <p className="text-white mb-2">Email sent successfully!</p>
-              <p className="text-purple-300 text-sm">
-                Check your inbox and click the reset link to continue.
-              </p>
-              <p className="text-purple-400 text-xs mt-4">
-                Didn't receive it? Check your spam folder or{" "}
-                <button
-                  onClick={() => {
-                    setEmailSent(false);
-                    setMessage(null);
-                  }}
-                  className="text-orange hover:underline"
-                >
-                  try again
-                </button>
-              </p>
-            </div>
-
-            <div className="text-center">
-              <Link href="/login" className="text-orange font-medium hover:underline">
-                ← Back to Login
-              </Link>
-            </div>
-          </div>
-        )}
+        <p style={{ marginTop: "1rem", fontSize: "0.875rem", color: "var(--text-muted)" }}>
+          Didn't receive it?{" "}
+          <button
+            onClick={() => { setSubmitted(false); setEmail(""); }}
+            style={{ color: "var(--orange)", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", textDecoration: "underline" }}
+          >
+            Try again
+          </button>
+        </p>
       </div>
+    );
+  }
+
+  return (
+    <div className="fade-up">
+      {/* Header */}
+      <div style={{ marginBottom: "2rem" }}>
+        <div style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "3rem",
+          height: "3rem",
+          borderRadius: "0.875rem",
+          background: "var(--orange-dim)",
+          border: "1px solid rgba(255,107,53,0.25)",
+          marginBottom: "1.25rem",
+        }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" strokeWidth={1.8} style={{ width: "1.5rem", height: "1.5rem" }}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+          </svg>
+        </div>
+
+        <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2rem", letterSpacing: "0.04em", color: "var(--text-primary)", lineHeight: 1, marginBottom: "0.5rem" }}>
+          RESET PASSWORD
+        </h1>
+        <p style={{ color: "var(--text-secondary)", fontSize: "0.9375rem", lineHeight: 1.5 }}>
+          Enter your email and we'll send a reset link if your account exists.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+        {error && <div className="alert-error">{error}</div>}
+
+        <div>
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="Email address"
+            className="input-field"
+            required
+            autoFocus
+          />
+        </div>
+
+        <button type="submit" disabled={isLoading || !email.trim()} className="btn-primary">
+          <span>{isLoading ? "Sending…" : "Send Reset Link"}</span>
+        </button>
+
+        <p style={{ textAlign: "center", color: "var(--text-secondary)", fontSize: "0.9375rem" }}>
+          Remembered it?{" "}
+          <Link
+            href="/login"
+            style={{ color: "var(--orange)", fontWeight: 700, textDecoration: "none" }}
+            onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.textDecoration = "underline"}
+            onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.textDecoration = "none"}
+          >
+            Back to Log In
+          </Link>
+        </p>
+      </form>
     </div>
   );
 }
