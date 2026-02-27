@@ -17,9 +17,6 @@ interface User {
   bio?: string;
 }
 
-const inputCls = "w-full px-4 py-2.5 text-sm font-medium text-text-primary bg-card border border-divider rounded-xl focus:outline-none focus:ring-2 focus:ring-orange/30 focus:border-orange/40 transition-all placeholder:text-text-secondary/50";
-const labelCls = "block text-[10px] font-black text-text-secondary tracking-widest uppercase mb-1.5";
-
 export default function AdminEditUserPage() {
   const router = useRouter();
   const params = useParams();
@@ -47,13 +44,9 @@ export default function AdminEditUserPage() {
       const u = result.data as User;
       setUser(u);
       setFormData({
-        fullName: u.fullName || "",
-        phoneNumber: u.phoneNumber || "",
-        gender: u.gender || "male",
-        email: u.email || "",
-        username: u.username || "",
-        bio: u.bio || "",
-        role: u.role || "user",
+        fullName: u.fullName || "", phoneNumber: u.phoneNumber || "",
+        gender: u.gender || "male", email: u.email || "",
+        username: u.username || "", bio: u.bio || "", role: u.role || "user",
       });
       setPreviewUrl(u.profilePicture || null);
     } catch (err: unknown) {
@@ -92,215 +85,313 @@ export default function AdminEditUserPage() {
     }
   };
 
-  // ── Loading ────────────────────────────────────────────────────────────────
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <span className="bg-linear-to-r from-orange via-red to-orange bg-clip-text text-transparent text-2xl font-black animate-pulse">
-            Ink Scratch
-          </span>
-          <div className="flex items-center justify-center gap-2">
-            <div className="w-2 h-2 bg-orange rounded-full animate-bounce [animation-delay:0ms]" />
-            <div className="w-2 h-2 bg-orange rounded-full animate-bounce [animation-delay:150ms]" />
-            <div className="w-2 h-2 bg-red rounded-full animate-bounce [animation-delay:300ms]" />
-          </div>
-        </div>
+  if (isLoading) return (
+    <div style={{ minHeight: "100vh", background: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ width: 40, height: 40, margin: "0 auto 16px", border: "3px solid rgba(255,107,53,0.2)", borderTop: "3px solid #FF6B35", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+        <p style={{ color: "rgba(255,255,255,0.3)", fontFamily: "'Share Tech Mono', monospace", fontSize: "0.75rem", letterSpacing: "0.2em", textTransform: "uppercase" }}>Loading…</p>
       </div>
-    );
-  }
+    </div>
+  );
 
-  // ── User not found ─────────────────────────────────────────────────────────
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-3xl shadow-sm border border-divider p-10 max-w-md w-full text-center">
-          <p className="text-4xl mb-4">⚠️</p>
-          <h3 className="text-xl font-black text-text-primary mb-2">User not found</h3>
-          <button
-            onClick={() => router.push("/admin/users")}
-            className="mt-2 px-6 py-2.5 bg-linear-to-r from-orange to-red text-white font-black text-sm rounded-xl shadow-md shadow-orange/20 hover:scale-105 transition-all"
-          >
-            Back to Users
-          </button>
-        </div>
+  if (!user) return (
+    <div style={{ minHeight: "100vh", background: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ textAlign: "center" }}>
+        <p style={{ fontSize: "3rem", marginBottom: "1rem" }}>⚠️</p>
+        <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "2rem", letterSpacing: "0.05em", color: "#fff", marginBottom: "1.5rem" }}>User Not Found</p>
+        <button onClick={() => router.push("/admin/users")} style={primaryBtnStyle}>Back to Users</button>
       </div>
-    );
-  }
+    </div>
+  );
 
   const initials = (previewUrl ? user.fullName : formData.fullName)?.[0]?.toUpperCase() ?? "?";
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16">
+    <>
+      <AdminFormStyles />
+      <div style={{ minHeight: "100vh", background: "#0a0a0f", color: "#fff", fontFamily: "'Noto Sans JP', sans-serif", paddingBottom: "5rem" }}>
+        <AdminFormBackground />
+        <div style={{ position: "relative", zIndex: 10 }}>
+          <AdminFormHero
+            title="Edit User Profile"
+            subtitle={`Update information and permissions for @${user.username}`}
+            breadcrumbs={[
+              { href: "/dashboard", label: "Dashboard" },
+              { href: "/admin/users", label: "Users" },
+              { href: `/admin/users/${userId}`, label: user.fullName },
+            ]}
+            currentLabel="Edit"
+          />
 
-      {/* ── Hero ──────────────────────────────────────────────────────────────── */}
-      <div className="relative bg-linear-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] overflow-hidden">
-        <div className="absolute top-0 right-0 w-72 h-72 bg-orange/10 rounded-full blur-3xl -translate-y-1/3 translate-x-1/4 pointer-events-none" />
-        <div className="relative max-w-3xl mx-auto px-6 py-10">
-          <nav className="flex items-center gap-2 text-xs text-white/40 font-semibold mb-5">
-            <Link href="/dashboard" className="hover:text-white/70 transition-colors">Dashboard</Link>
-            <span>›</span>
-            <Link href="/admin/users" className="hover:text-white/70 transition-colors">Users</Link>
-            <span>›</span>
-            <Link href={`/admin/users/${userId}`} className="hover:text-white/70 transition-colors">{user.fullName}</Link>
-            <span>›</span>
-            <span className="text-white/70">Edit</span>
-          </nav>
-          <p className="text-orange/80 text-xs font-black tracking-widest uppercase mb-1">Admin Panel</p>
-          <h1 className="text-3xl font-black text-white mb-1">Edit User Profile</h1>
-          <p className="text-white/40 text-sm">Update information and permissions for @{user.username}</p>
+          <div style={{ maxWidth: 800, margin: "0 auto", padding: "1.75rem 1.5rem 0" }}>
+            <button className="back-btn" onClick={() => router.push(`/admin/users/${userId}`)} style={{ marginBottom: "1.25rem" }}>← Back to User Profile</button>
+
+            <div style={cardStyle}>
+              {message && <AlertBanner message={message} />}
+
+              <form onSubmit={handleSubmit}>
+                {/* Profile picture */}
+                <FormSection label="Profile Picture" bordered>
+                  <AvatarUpload previewUrl={previewUrl} initials={initials} onChange={handleImageChange} btnLabel="Change Photo" />
+                </FormSection>
+
+                {/* Personal info */}
+                <FormSection label="Personal Information" bordered>
+                  <FormField label="Full Name *">
+                    <input type="text" value={formData.fullName} onChange={e => set("fullName", e.target.value)} className="form-input" placeholder="Full name" required />
+                  </FormField>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <FormField label="Email *">
+                      <input type="email" value={formData.email} onChange={e => set("email", e.target.value)} className="form-input" placeholder="user@example.com" required />
+                    </FormField>
+                    <FormField label="Username *">
+                      <input type="text" value={formData.username} onChange={e => set("username", e.target.value)} className="form-input" placeholder="username" required />
+                    </FormField>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <FormField label="Phone Number *">
+                      <input type="tel" value={formData.phoneNumber} onChange={e => set("phoneNumber", e.target.value)} className="form-input" placeholder="+1 (555) 000-0000" required />
+                    </FormField>
+                    <FormField label="Gender *">
+                      <select value={formData.gender} onChange={e => set("gender", e.target.value)} className="form-input" required>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </FormField>
+                  </div>
+                </FormSection>
+
+                {/* Account settings */}
+                <FormSection label="Account Settings" bordered>
+                  <FormField label="Role *">
+                    <select value={formData.role} onChange={e => set("role", e.target.value)} className="form-input" required>
+                      <option value="user">👤 User</option>
+                      <option value="admin">👑 Admin</option>
+                    </select>
+                  </FormField>
+                  <p style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: 10, color: "rgba(255,255,255,0.25)", letterSpacing: "0.05em", marginTop: 6 }}>Admins have full access to the admin panel</p>
+                </FormSection>
+
+                {/* Bio */}
+                <FormSection label="Bio" bordered>
+                  <FormField label="User Bio (Optional)">
+                    <textarea value={formData.bio} onChange={e => set("bio", e.target.value)} maxLength={160} rows={4} className="form-input" style={{ resize: "none" }} placeholder="Tell us about this user…" />
+                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+                      <p style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: 10, color: "rgba(255,255,255,0.2)", letterSpacing: "0.05em" }}>A brief description about the user</p>
+                      <p style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: 10, color: formData.bio.length > 140 ? "#f87171" : "rgba(255,255,255,0.25)", letterSpacing: "0.05em" }}>{formData.bio.length}/160</p>
+                    </div>
+                  </FormField>
+                </FormSection>
+
+                {/* Actions */}
+                <div style={{ padding: "20px 24px", display: "flex", gap: 10 }}>
+                  <button type="submit" disabled={isSubmitting} className="primary-btn" style={{ flex: 1, ...primaryBtnStyle }}>
+                    {isSubmitting ? <SpinnerLabel label="Saving…" /> : "💾 Save Changes"}
+                  </button>
+                  <button type="button" onClick={() => router.push(`/admin/users/${userId}`)} disabled={isSubmitting} className="cancel-btn" style={{ flex: 1, padding: "13px", borderRadius: 14, fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.1rem", letterSpacing: "0.12em" }}>Cancel</button>
+                </div>
+              </form>
+            </div>
+            <p style={{ textAlign: "center", fontFamily: "'Share Tech Mono', monospace", fontSize: 10, color: "rgba(255,255,255,0.2)", marginTop: 12, letterSpacing: "0.08em" }}>
+              Fields marked with <span style={{ color: "#f87171" }}>*</span> are required
+            </p>
+          </div>
         </div>
       </div>
+    </>
+  );
+}
 
-      {/* ── Form ──────────────────────────────────────────────────────────────── */}
-      <div className="max-w-3xl mx-auto px-6 py-8">
+// ─── Shared sub-components used by both Edit and Create ──────────────────────
 
-        <button
-          onClick={() => router.push(`/admin/users/${userId}`)}
-          className="flex items-center gap-1.5 text-sm font-bold text-text-secondary hover:text-orange transition-colors mb-6"
-        >
-          ← Back to User Profile
-        </button>
+function AdminFormStyles() {
+  return (
+    <style>{`
+      @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Share+Tech+Mono&display=swap');
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @keyframes ink-float {
+        0%   { opacity: 0; transform: translateY(0) scale(0.5); }
+        15%  { opacity: 0.7; }
+        85%  { opacity: 0.3; }
+        100% { opacity: 0; transform: translateY(-600px) scale(1.5) rotate(180deg); }
+      }
+      .ink-float { animation: ink-float linear infinite; }
+      @keyframes fade-up {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      .fade-up { animation: fade-up 0.7s cubic-bezier(0.16,1,0.3,1) both; }
 
-        <div className="bg-white rounded-3xl border border-divider shadow-sm overflow-hidden">
+      .form-input {
+        width: 100%; padding: 11px 14px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        color: rgba(255,255,255,0.85);
+        font-family: 'Noto Sans JP', sans-serif;
+        font-size: 0.875rem;
+        outline: none;
+        transition: border-color 0.2s, background 0.2s;
+        box-sizing: border-box;
+      }
+      .form-input::placeholder { color: rgba(255,255,255,0.2); }
+      .form-input:focus { border-color: rgba(255,107,53,0.4); background: rgba(255,107,53,0.03); box-shadow: 0 0 0 3px rgba(255,107,53,0.07); }
+      .form-input option { background: #16161f; }
 
-          {/* Alert */}
-          {message && (
-            <div className={`mx-6 mt-6 p-4 rounded-2xl text-sm font-semibold flex items-center gap-2 ${
-              message.type === "success"
-                ? "bg-green-50 text-green-700 border border-green-200"
-                : "bg-red/5 text-red border border-red/20"
-            }`}>
-              {message.type === "success" ? "✅" : "❌"} {message.text}
-            </div>
-          )}
+      .primary-btn { transition: all 0.25s; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+      .primary-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 30px rgba(255,107,53,0.45) !important; }
+      .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-          <form onSubmit={handleSubmit}>
+      .cancel-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); cursor: pointer; transition: all 0.2s; }
+      .cancel-btn:hover:not(:disabled) { border-color: rgba(255,255,255,0.2); color: #fff; background: rgba(255,255,255,0.07); }
+      .cancel-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-            {/* ── Profile Picture ─────────────────────────────────────────────── */}
-            <section className="px-6 pt-6 pb-6 border-b border-divider">
-              <p className={labelCls}>Profile Picture</p>
-              <div className="flex items-center gap-5">
-                <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-divider shrink-0">
-                  {previewUrl ? (
-                    <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-linear-to-br from-orange to-red flex items-center justify-center">
-                      <span className="text-white font-black text-xl">{initials}</span>
-                    </div>
-                  )}
-                </div>
-                <label className="cursor-pointer">
-                  <span className="block px-4 py-2 text-sm font-bold text-orange border-2 border-orange/30 rounded-xl hover:bg-orange/5 hover:border-orange/60 transition-all">
-                    Change Photo
-                  </span>
-                  <input type="file" accept="image/jpeg,image/jpg,image/png" onChange={handleImageChange} className="hidden" />
-                </label>
-                <p className="text-xs text-text-secondary">JPG or PNG, max 5MB</p>
-              </div>
-            </section>
+      .upload-label { display: inline-block; padding: 8px 18px; border: 1px solid rgba(255,107,53,0.35); border-radius: 10px; color: #FF6B35; font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+      .upload-label:hover { background: rgba(255,107,53,0.08); border-color: rgba(255,107,53,0.6); }
 
-            {/* ── Personal Information ────────────────────────────────────────── */}
-            <section className="px-6 py-6 border-b border-divider space-y-4">
-              <p className={labelCls}>Personal Information</p>
+      .back-btn { background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.35); font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.2s; display: flex; align-items: center; gap: 6px; padding: 0; }
+      .back-btn:hover { color: #FF6B35; }
 
-              <div>
-                <label className={labelCls}>Full Name *</label>
-                <input type="text" value={formData.fullName} onChange={(e) => set("fullName", e.target.value)} className={inputCls} placeholder="Full name" required />
-              </div>
+      ::-webkit-scrollbar { width: 5px; }
+      ::-webkit-scrollbar-track { background: #0a0a0f; }
+      ::-webkit-scrollbar-thumb { background: rgba(255,107,53,0.35); border-radius: 3px; }
+    `}</style>
+  );
+}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className={labelCls}>Email *</label>
-                  <input type="email" value={formData.email} onChange={(e) => set("email", e.target.value)} className={inputCls} placeholder="user@example.com" required />
-                </div>
-                <div>
-                  <label className={labelCls}>Username *</label>
-                  <input type="text" value={formData.username} onChange={(e) => set("username", e.target.value)} className={inputCls} placeholder="username" required />
-                </div>
-              </div>
+function AdminFormBackground() {
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
+      <div style={{ position: "absolute", top: "-10%", left: "20%", width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(255,107,53,0.2) 0%, transparent 70%)", filter: "blur(90px)", opacity: 0.15 }} />
+      <div style={{ position: "absolute", bottom: "10%", right: "-5%", width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(230,57,70,0.3) 0%, transparent 70%)", filter: "blur(80px)", opacity: 0.1 }} />
+      <div style={{ position: "absolute", inset: 0, opacity: 0.025, backgroundImage: "radial-gradient(circle, #FF6B35 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
+      <div style={{ position: "absolute", inset: 0, opacity: 0.02, backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.05) 2px, rgba(255,255,255,0.05) 4px)" }} />
+      {Array.from({ length: 8 }, (_, i) => (
+        <div key={i} className="ink-float" style={{ position: "absolute", left: `${(i * 53 + 7) % 92}%`, bottom: -10, width: 3 + (i % 4) * 2, height: 3 + (i % 4) * 2, borderRadius: "50%", background: i % 2 === 0 ? "radial-gradient(circle, rgba(255,107,53,0.5), transparent)" : "radial-gradient(circle, rgba(230,57,70,0.4), transparent)", animationDelay: `${i * 1.1}s`, animationDuration: `${8 + (i % 4)}s`, filter: "blur(1.5px)" }} />
+      ))}
+    </div>
+  );
+}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className={labelCls}>Phone Number *</label>
-                  <input type="tel" value={formData.phoneNumber} onChange={(e) => set("phoneNumber", e.target.value)} className={inputCls} placeholder="+1 (555) 000-0000" required />
-                </div>
-                <div>
-                  <label className={labelCls}>Gender *</label>
-                  <select value={formData.gender} onChange={(e) => set("gender", e.target.value)} className={inputCls} required>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-              </div>
-            </section>
+function AdminFormHero({ title, subtitle, breadcrumbs, currentLabel }: {
+  title: string; subtitle: string;
+  breadcrumbs: { href: string; label: string }[];
+  currentLabel: string;
+}) {
+  return (
+    <div style={{ position: "relative", overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(26,10,10,0.85) 0%, rgba(13,0,20,0.85) 50%, rgba(10,10,26,0.85) 100%)" }} />
+      <div style={{ position: "absolute", inset: 0, opacity: 0.04, backgroundImage: "repeating-linear-gradient(-55deg, transparent, transparent 60px, rgba(255,107,53,1) 60px, rgba(255,107,53,1) 61px)" }} />
+      <div style={{ position: "absolute", top: -60, right: 80, width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(255,107,53,0.2) 0%, transparent 70%)", filter: "blur(40px)" }} />
 
-            {/* ── Account Settings ────────────────────────────────────────────── */}
-            <section className="px-6 py-6 border-b border-divider space-y-4">
-              <p className={labelCls}>Account Settings</p>
-              <div>
-                <label className={labelCls}>Role *</label>
-                <select value={formData.role} onChange={(e) => set("role", e.target.value)} className={inputCls} required>
-                  <option value="user">👤 User</option>
-                  <option value="admin">👑 Admin</option>
-                </select>
-                <p className="text-xs text-text-secondary mt-1.5">Admins have full access to the admin panel</p>
-              </div>
-            </section>
+      <div style={{ position: "relative", maxWidth: 800, margin: "0 auto", padding: "clamp(5rem,10vw,7rem) 1.5rem 2rem" }}>
+        <nav className="fade-up" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "1.5rem", flexWrap: "wrap" }}>
+          <div style={{ width: 20, height: 2, background: "#FF6B35", flexShrink: 0 }} />
+          <span style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: 9, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,107,53,0.6)" }}>Admin Panel</span>
+          {breadcrumbs.map(item => (
+            <span key={item.href} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ color: "rgba(255,107,53,0.35)", fontSize: 10 }}>›</span>
+              <Link href={item.href} style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none", fontFamily: "'Share Tech Mono', monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", transition: "color 0.2s" }}
+                onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = "#FF6B35"}
+                onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.3)"}
+              >{item.label}</Link>
+            </span>
+          ))}
+          <span style={{ color: "rgba(255,107,53,0.35)", fontSize: 10 }}>›</span>
+          <span style={{ color: "rgba(255,255,255,0.55)", fontFamily: "'Share Tech Mono', monospace", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase" }}>{currentLabel}</span>
+        </nav>
 
-            {/* ── Bio ─────────────────────────────────────────────────────────── */}
-            <section className="px-6 py-6 border-b border-divider space-y-4">
-              <p className={labelCls}>Bio</p>
-              <div>
-                <label className={labelCls}>User Bio (Optional)</label>
-                <textarea
-                  value={formData.bio}
-                  onChange={(e) => set("bio", e.target.value)}
-                  maxLength={160}
-                  rows={4}
-                  className={`${inputCls} resize-none`}
-                  placeholder="Tell us about this user…"
-                />
-                <div className="flex justify-between mt-1.5">
-                  <p className="text-xs text-text-secondary">A brief description about the user</p>
-                  <p className={`text-xs font-semibold ${formData.bio.length > 140 ? "text-red" : "text-text-secondary"}`}>
-                    {formData.bio.length}/160
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            {/* ── Actions ─────────────────────────────────────────────────────── */}
-            <div className="px-6 py-5 flex gap-3">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 py-3 bg-linear-to-r from-orange to-red text-white font-black text-sm rounded-2xl shadow-md shadow-orange/20 hover:shadow-orange/30 hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200 flex items-center justify-center gap-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Saving…
-                  </>
-                ) : "💾 Save Changes"}
-              </button>
-              <button
-                type="button"
-                onClick={() => router.push(`/admin/users/${userId}`)}
-                disabled={isSubmitting}
-                className="flex-1 py-3 bg-card text-text-primary font-black text-sm rounded-2xl border border-divider hover:bg-divider transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+        <div className="fade-up" style={{ animationDelay: "0.1s" }}>
+          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "clamp(2rem,5vw,3.25rem)", letterSpacing: "0.03em", lineHeight: 0.92, marginBottom: "0.5rem", background: "linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.8) 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+            {title}
+          </h1>
+          <p style={{ color: "rgba(255,255,255,0.35)", fontFamily: "'Share Tech Mono', monospace", fontSize: 11, letterSpacing: "0.1em" }}>{subtitle}</p>
         </div>
-
-        <p className="text-center text-xs text-text-secondary mt-4">
-          Fields marked with <span className="text-red font-black">*</span> are required
-        </p>
       </div>
     </div>
   );
 }
+
+function AlertBanner({ message }: { message: { type: "success" | "error"; text: string } }) {
+  return (
+    <div style={{
+      margin: "20px 24px 0", padding: "14px 16px", borderRadius: 14, fontSize: "0.875rem", fontWeight: 600,
+      ...(message.type === "success"
+        ? { background: "rgba(34,197,94,0.08)", color: "#4ade80", border: "1px solid rgba(34,197,94,0.2)" }
+        : { background: "rgba(239,68,68,0.08)", color: "#f87171", border: "1px solid rgba(239,68,68,0.2)" }
+      ),
+    }}>
+      {message.type === "success" ? "✅" : "❌"} {message.text}
+    </div>
+  );
+}
+
+function FormSection({ label, bordered, children }: { label: string; bordered?: boolean; children: React.ReactNode }) {
+  return (
+    <div style={{ padding: "20px 24px", borderBottom: bordered ? "1px solid rgba(255,255,255,0.07)" : "none", display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ width: 14, height: 2, background: "#FF6B35", flexShrink: 0 }} />
+        <span style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: 9, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,107,53,0.6)" }}>{label}</span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function FormField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label style={{ display: "block", fontFamily: "'Share Tech Mono', monospace", fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 6 }}>{label}</label>
+      {children}
+    </div>
+  );
+}
+
+function AvatarUpload({ previewUrl, initials, onChange, btnLabel }: { previewUrl: string | null; initials: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; btnLabel: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+      <div style={{ width: 60, height: 60, borderRadius: 14, overflow: "hidden", border: "2px solid rgba(255,107,53,0.2)", flexShrink: 0 }}>
+        {previewUrl ? (
+          <img src={previewUrl} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        ) : (
+          <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, #FF6B35, #E63946)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ color: "#fff", fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.5rem" }}>{initials}</span>
+          </div>
+        )}
+      </div>
+      <label className="upload-label">
+        {btnLabel}
+        <input type="file" accept="image/jpeg,image/jpg,image/png" onChange={onChange} style={{ display: "none" }} />
+      </label>
+      <p style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: 10, color: "rgba(255,255,255,0.2)", letterSpacing: "0.05em" }}>JPG or PNG · max 5MB</p>
+    </div>
+  );
+}
+
+function SpinnerLabel({ label }: { label: string }) {
+  return (
+    <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+      <span style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.3)", borderTop: "2px solid #fff", borderRadius: "50%", animation: "spin 0.8s linear infinite", display: "inline-block" }} />
+      {label}
+    </span>
+  );
+}
+
+const cardStyle: React.CSSProperties = {
+  background: "rgba(255,255,255,0.025)",
+  border: "1px solid rgba(255,255,255,0.07)",
+  borderRadius: 20,
+  overflow: "hidden",
+};
+
+const primaryBtnStyle: React.CSSProperties = {
+  padding: "13px 22px",
+  background: "linear-gradient(135deg, #FF6B35, #E63946)",
+  borderRadius: 14,
+  color: "#fff",
+  fontFamily: "'Bebas Neue', sans-serif",
+  fontSize: "1.1rem",
+  letterSpacing: "0.12em",
+  boxShadow: "0 0 20px rgba(255,107,53,0.3)",
+};

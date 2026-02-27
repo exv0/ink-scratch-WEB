@@ -67,7 +67,6 @@ export default function ChapterReaderPage() {
   const mangaId   = params.id as string;
   const chapterId = params.chapterId as string;
 
-  // Chapter metadata comes from our backend; pages come directly from MangaDex
   const [chapter,      setChapter]      = useState<Omit<ChapterWithPages, "pages"> | null>(null);
   const [pages,        setPages]        = useState<ChapterPage[]>([]);
   const [allChapters,  setAllChapters]  = useState<Chapter[]>([]);
@@ -80,7 +79,6 @@ export default function ChapterReaderPage() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ── Load chapter metadata + fresh image URLs + chapter list ──────────────
   useEffect(() => {
     async function load() {
       setLoading(true);
@@ -88,8 +86,6 @@ export default function ChapterReaderPage() {
       setCurrentPage(1);
       setPages([]);
       try {
-        // 1. Get chapter metadata (sourceId, chapterNumber, title…) from our backend
-        // 2. Get sibling chapters for prev/next nav
         const [chapterRes, chaptersRes] = await Promise.all([
           mangaService.getChapterPages(chapterId),
           mangaService.getChapters(mangaId),
@@ -99,9 +95,6 @@ export default function ChapterReaderPage() {
         setChapter(chapterData);
         setAllChapters(chaptersRes.data);
 
-        // 3. Fetch brand-new image URLs directly from MangaDex using sourceId.
-        //    Done client-side so URLs are always fresh — they can't expire
-        //    between the backend fetching them and the browser rendering them.
         const freshPages = await mangaService.getFreshPages(chapterData.sourceId);
         setPages(freshPages);
       } catch (err: any) {
@@ -113,14 +106,11 @@ export default function ChapterReaderPage() {
     load();
   }, [chapterId, mangaId]);
 
-  // ── Prev / next chapter ───────────────────────────────────────────────────
   const currentIndex = allChapters.findIndex(c => c._id === chapterId);
   const prevChapter  = currentIndex > 0 ? allChapters[currentIndex - 1] : null;
   const nextChapter  = currentIndex < allChapters.length - 1 ? allChapters[currentIndex + 1] : null;
+  const totalPages   = pages.length;
 
-  const totalPages = pages.length;
-
-  // ── Auto-hide UI ──────────────────────────────────────────────────────────
   const resetHideTimer = useCallback(() => {
     setUiVisible(true);
     if (hideTimer.current) clearTimeout(hideTimer.current);
@@ -132,7 +122,6 @@ export default function ChapterReaderPage() {
     return () => { if (hideTimer.current) clearTimeout(hideTimer.current); };
   }, [resetHideTimer]);
 
-  // ── Keyboard nav ──────────────────────────────────────────────────────────
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (readMode !== "paged") return;
@@ -143,7 +132,6 @@ export default function ChapterReaderPage() {
     return () => window.removeEventListener("keydown", handler);
   }, [readMode, totalPages]);
 
-  // ── Scroll tracking (vertical mode) ──────────────────────────────────────
   useEffect(() => {
     if (readMode !== "vertical") return;
     const observer = new IntersectionObserver(
@@ -168,7 +156,6 @@ export default function ChapterReaderPage() {
 
   const progressPct = totalPages > 0 ? Math.round((currentPage / totalPages) * 100) : 0;
 
-  // ── Loading ───────────────────────────────────────────────────────────────
   if (loading) return (
     <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center">
       <div className="text-center">
@@ -178,7 +165,6 @@ export default function ChapterReaderPage() {
     </div>
   );
 
-  // ── Error ─────────────────────────────────────────────────────────────────
   if (error || !chapter) return (
     <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center">
       <div className="text-center">
@@ -199,11 +185,9 @@ export default function ChapterReaderPage() {
 
       {/* Top bar */}
       <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${uiVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"}`}>
-        {/* Progress bar */}
         <div className="h-[3px] bg-white/10">
           <div className="h-full bg-gradient-to-r from-orange-500 to-red-500 transition-all duration-300" style={{ width: `${progressPct}%` }} />
         </div>
-        {/* Nav */}
         <div className="bg-[#111]/95 backdrop-blur border-b border-white/8 px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <Link href={`/manga/${mangaId}`}>
@@ -289,7 +273,6 @@ export default function ChapterReaderPage() {
               <MangaPageImage page={page} fitMode={fitMode} />
             </div>
           ))}
-          {/* End of chapter */}
           <div className="flex flex-col items-center justify-center py-20 px-6 text-center bg-[#111] border-t border-white/8">
             <p className="text-3xl mb-4">🎉</p>
             <p className="text-white font-black text-xl mb-1">End of Chapter {chapter.chapterNumber}</p>

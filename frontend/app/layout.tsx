@@ -1,58 +1,65 @@
 // app/layout.tsx
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
+// ── Metadata ──────────────────────────────────────────────────────────────────
 export const metadata: Metadata = {
-  title: "Ink Scratch",
-  description: "Your reading journey starts here",
+  title: {
+    default: "Ink Scratch",
+    template: "%s · Ink Scratch",
+  },
+  description: "Thousands of manga, comics & novels — one portal, every device.",
+  keywords: ["manga", "comics", "reader", "manhwa", "manhua", "ink scratch"],
+  themeColor: "#FF6B35",
+  openGraph: {
+    type: "website",
+    siteName: "Ink Scratch",
+    title: "Ink Scratch — Your Reading Journey Starts Here",
+    description: "Thousands of manga, comics & novels — one portal, every device.",
+  },
 };
 
-// ✅ Inline script injected before first paint — eliminates theme flash.
-// Reads from localStorage (set by ThemeToggle) and applies to <html>
-// before React hydrates. No FOUC.
+// ── Anti-flash theme script (runs synchronously before first paint) ───────────
+// Reads the stored theme from localStorage and applies data-theme to <html>
+// before React hydrates — eliminates FOUC entirely.
 const themeScript = `
-(function() {
+(function(){
   try {
-    var stored = localStorage.getItem('is-theme');
-    var theme = stored || 'system';
-    if (theme === 'system') {
-      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    var t = localStorage.getItem('is-theme') || 'system';
+    if (t === 'system') {
+      t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
-    document.documentElement.setAttribute('data-theme', theme);
-    document.documentElement.style.visibility = '';
+    document.documentElement.setAttribute('data-theme', t);
   } catch(e) {
     document.documentElement.setAttribute('data-theme', 'dark');
-    document.documentElement.style.visibility = '';
   }
+  document.documentElement.style.visibility = '';
 })();
 `;
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
+    // suppressHydrationWarning prevents React from complaining about
+    // data-theme being set by the inline script before hydration.
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* ✅ Theme script runs synchronously before page renders */}
+        {/* ── Google Fonts — Bebas Neue, Syne, JetBrains Mono ────────────── */}
+        {/* These match the @import in globals.css; preconnect for performance */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+          rel="stylesheet"
+        />
+
+        {/* ── Theme script — runs before paint, prevents flash ─────────── */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+
+      <body style={{ fontFamily: "var(--font-body)" }}>
         <AuthProvider>
           {children}
         </AuthProvider>
