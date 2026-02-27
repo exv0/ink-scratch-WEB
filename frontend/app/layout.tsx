@@ -19,13 +19,37 @@ export const metadata: Metadata = {
   description: "Your reading journey starts here",
 };
 
+// ✅ Inline script injected before first paint — eliminates theme flash.
+// Reads from localStorage (set by ThemeToggle) and applies to <html>
+// before React hydrates. No FOUC.
+const themeScript = `
+(function() {
+  try {
+    var stored = localStorage.getItem('is-theme');
+    var theme = stored || 'system';
+    if (theme === 'system') {
+      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.style.visibility = '';
+  } catch(e) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.documentElement.style.visibility = '';
+  }
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* ✅ Theme script runs synchronously before page renders */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
