@@ -1,62 +1,120 @@
 // lib/services/library.service.ts
-// Persists library to localStorage so it works client-side without a backend endpoint.
-// Swap the storage calls for real API requests when your backend is ready.
+// Now persists to the backend (user.library in MongoDB) instead of localStorage.
+// Falls back gracefully if the user is not authenticated.
 
-const LIBRARY_KEY = "ink_scratch_library";
+import { API_BASE_URL } from "../config";
+
+const BASE = `${API_BASE_URL}/api/library`;
 
 export interface LibraryManga {
-  _id: string;
-  title: string;
-  author: string;
+  mangaId:     string;
+  /** Keep _id as alias so existing UI code using manga._id still works */
+  _id:         string;
+  title:       string;
+  author:      string;
   coverImage?: string;
-  status: string;
-  genre: string[];
-  rating: number;
-  year?: number;
+  status:      string;
+  genre:       string[];
+  rating:      number;
+  year?:       number;
   description?: string;
-  addedAt: string; // ISO date string
+  addedAt:     string; // ISO date string
 }
 
-function readStore(): LibraryManga[] {
-  if (typeof window === "undefined") return [];
-  try {
-    return JSON.parse(localStorage.getItem(LIBRARY_KEY) || "[]");
-  } catch {
-    return [];
-  }
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function authHeaders(): HeadersInit {
+  // Token is stored in a cookie by the auth service; for Bearer-based setups
+  // grab it from the cookie or localStorage depending on your AuthContext impl.
+  if (typeof document === "undefined") return { "Content-Type": "application/json" };
+  const match = document.cookie.match(/(?:^|;\s*)token=([^;]+)/);
+  const token = match ? match[1] : null;
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
 }
 
-function writeStore(items: LibraryManga[]): void {
-  localStorage.setItem(LIBRARY_KEY, JSON.stringify(items));
+/** Normalise a raw library entry from the backend so _id === mangaId */
+function normalise(entry: any): LibraryManga {
+  return {
+    ...entry,
+    _id:     entry.mangaId ?? entry._id,
+    addedAt: entry.addedAt ?? new Date().toISOString(),
+  };
 }
+
+// ── Service ───────────────────────────────────────────────────────────────────
 
 export const libraryService = {
-  getAll(): LibraryManga[] {
-    return readStore();
-  },
 
-  isInLibrary(mangaId: string): boolean {
-    return readStore().some((m) => m._id === mangaId);
-  },
-
-  add(manga: LibraryManga): void {
-    const current = readStore();
-    if (!current.some((m) => m._id === manga._id)) {
-      writeStore([{ ...manga, addedAt: new Date().toISOString() }, ...current]);
+  async getAll(): Promise<LibraryManga[]> {
+    try {
+      const res = await fetch(BASE, { headers: authHeaders() });
+      if (!res.ok) return [];
+      const json = await res.json();
+      return (json.data ?? []).map(normalise);
+    } catch {
+      return [];
     }
   },
 
-  remove(mangaId: string): void {
-    writeStore(readStore().filter((m) => m._id !== mangaId));
+  async isInLibrary(mangaId: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${BASE}/check/${mangaId}`, { headers: authHeaders() });
+      if (!res.ok) return false;
+      const json = await res.json();
+      return json.data?.inLibrary ?? false;
+    } catch {
+      return false;
+    }
   },
 
-  toggle(manga: LibraryManga): boolean {
-    if (libraryService.isInLibrary(manga._id)) {
-      libraryService.remove(manga._id);
-      return false; // removed
+  async add(manga: Omit<LibraryManga, "addedAt">): Promise<boolean> {
+    try {
+      const res = await fetch(`${BASE}/add`, {
+        method:  "POST",
+        headers: authHeaders(),
+        body:    JSON.stringify({
+          mangaId:     manga.mangaId ?? manga._id,
+          title:       manga.title,
+          author:      manga.author,
+          coverImage:  manga.coverImage,
+          status:      manga.status,
+          genre:       manga.genre,
+          rating:      manga.rating,
+          year:        manga.year,
+          description: manga.description,
+        }),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  },
+
+  async remove(mangaId: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${BASE}/${mangaId}`, {
+        method:  "DELETE",
+        headers: authHeaders(),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  },
+
+  /** Toggles library state. Returns true if now in library, false if removed. */
+  async toggle(manga: Omit<LibraryManga, "addedAt">): Promise<boolean> {
+    const mangaId = manga.mangaId ?? manga._id;
+    const inLib   = await libraryService.isInLibrary(mangaId);
+    if (inLib) {
+      await libraryService.remove(mangaId);
+      return false;
     } else {
-      libraryService.add(manga);
-      return true; // added
+      await libraryService.add(manga);
+      return true;
     }
   },
 };

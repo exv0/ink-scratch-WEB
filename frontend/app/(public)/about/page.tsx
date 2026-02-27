@@ -157,15 +157,14 @@ export default function AboutPage() {
                 marginBottom: "1.5rem",
                 lineHeight: 1,
               }}>
-                Why We Built This
+                Why I Built This
               </h2>
 
               <p style={{ fontSize: "1.0625rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.85, maxWidth: "800px", margin: "0 auto 1.25rem", fontWeight: 300 }}>
-                At <span style={{ color: "#FF6B35", fontWeight: 700 }}>Ink Scratch</span>, we believe reading should be seamless and joyful.
-                Inspired by the immediacy of streaming services like Netflix and Spotify, we created a platform that brings the same effortless experience to digital literature.
+                I made <span style={{ color: "#FF6B35", fontWeight: 700 }}>Ink Scratch</span> as my college project and also so I could bring into life the very website I use on my free time. I wanted to create a modern, seamless reading experience that finally does justice to the incredible stories manga creators are crafting. I hope everyone who views this likes it.
               </p>
               <p style={{ fontSize: "1.0625rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.85, maxWidth: "800px", margin: "0 auto", fontWeight: 300 }}>
-                No more managing files, corrupted downloads, or clunky apps. Just open your browser, pick a story, and dive in — with your progress synced across all your devices in the cloud.
+                Enjoy your experience. 
               </p>
             </div>
           </section>
