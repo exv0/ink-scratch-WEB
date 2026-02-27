@@ -1,3 +1,5 @@
+// backend/src/dtos/user.dto.ts
+
 import z from "zod";
 import { UserSchema } from "../types/user.type";
 
@@ -26,14 +28,16 @@ export const LoginUserDTO = z.object({
 });
 export type LoginUserDTO = z.infer<typeof LoginUserDTO>;
 
-// Update User DTO (for profile updates)
+// Update User DTO (for profile updates — includes theme)
 export const UpdateUserDTO = z.object({
   profilePicture: z.string().optional(),
   bio: z.string().max(160).optional(),
+  // ✅ Theme preference — user can update their own theme
+  theme: z.enum(['light', 'dark', 'system']).optional(),
 });
 export type UpdateUserDTO = z.infer<typeof UpdateUserDTO>;
 
-// ✅ Admin Create User DTO (with role)
+// Admin Create User DTO (with role)
 export const AdminCreateUserDTO = UserSchema.pick({
   fullName: true,
   phoneNumber: true,
@@ -41,7 +45,7 @@ export const AdminCreateUserDTO = UserSchema.pick({
   email: true,
   username: true,
   password: true,
-  role: true, // ✅ Admin can set role
+  role: true,
 })
   .extend({
     confirmPassword: z.string().min(6),
@@ -52,7 +56,7 @@ export const AdminCreateUserDTO = UserSchema.pick({
   });
 export type AdminCreateUserDTO = z.infer<typeof AdminCreateUserDTO>;
 
-// ✅ Admin Update User DTO (full user update including role)
+// Admin Update User DTO (full user update including role)
 export const AdminUpdateUserDTO = z.object({
   fullName: z.string().optional(),
   phoneNumber: z.string().optional(),
@@ -61,6 +65,7 @@ export const AdminUpdateUserDTO = z.object({
   username: z.string().min(3).max(30).optional(),
   profilePicture: z.string().optional(),
   bio: z.string().max(160).optional(),
-  role: z.enum(['user', 'admin']).optional(), // ✅ Admin can change role
+  role: z.enum(['user', 'admin']).optional(),
+  theme: z.enum(['light', 'dark', 'system']).optional(),
 });
 export type AdminUpdateUserDTO = z.infer<typeof AdminUpdateUserDTO>;
