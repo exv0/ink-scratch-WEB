@@ -30,19 +30,11 @@ export default function LoginForm() {
 
   const onSubmit = async (data: LoginFormData) => {
     setError("");
-    
     try {
-      // Call backend API
       const result = await authService.login(data);
-
-      // Store token and user data in cookies
       cookieUtils.setToken(result.token, rememberMe);
       cookieUtils.setUser(result.data, rememberMe);
-
-      // Sync AuthContext with the new token before navigating
       refreshAuth();
-      
-      // Redirect to dashboard
       router.push("/dashboard");
     } catch (err: any) {
       console.error("Login error:", err);
@@ -51,84 +43,150 @@ export default function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="text-center">
-        <h1 className="logo-gradient">Ink Scratch</h1>
-        <p className="mt-3 text-text-secondary text-lg">
-          Log in to continue your reading journey
+    <div className="fade-up">
+      {/* Header */}
+      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
+          <div style={{
+            width: "2.5rem",
+            height: "2.5rem",
+            borderRadius: "0.75rem",
+            background: "linear-gradient(135deg, var(--orange), var(--red))",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "var(--shadow-orange)",
+          }}>
+            <span style={{ color: "#fff", fontWeight: 900, fontSize: "0.875rem", fontFamily: "var(--font-display)" }}>IS</span>
+          </div>
+          <span style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "1.875rem",
+            letterSpacing: "0.06em",
+            background: "linear-gradient(135deg, var(--orange), var(--red))",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}>
+            INK SCRATCH
+          </span>
+        </div>
+
+        <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2rem", letterSpacing: "0.04em", color: "var(--text-primary)", lineHeight: 1, marginBottom: "0.5rem" }}>
+          WELCOME BACK
+        </h1>
+        <p style={{ color: "var(--text-secondary)", fontSize: "0.9375rem" }}>
+          Continue your reading journey
         </p>
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {error}
-        </div>
-      )}
-
-      <div className="space-y-4">
-        <input
-          {...register("email")}
-          type="email"
-          placeholder="Email"
-          className="input-field"
-        />
-        {errors.email && (
-          <p className="text-sm text-red-600 -mt-2">{errors.email.message}</p>
+      <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+        {error && (
+          <div className="alert-error">
+            {error}
+          </div>
         )}
 
-        <div className="relative">
+        {/* Email */}
+        <div>
           <input
-            {...register("password")}
-            type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            className="input-field pr-12"
+            {...register("email")}
+            type="email"
+            placeholder="Email address"
+            className="input-field"
+            style={{ fontFamily: "var(--font-body)" }}
           />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition"
+          {errors.email && (
+            <p style={{ fontSize: "0.8125rem", color: "var(--red)", marginTop: "0.375rem", fontWeight: 500 }}>
+              {errors.email.message}
+            </p>
+          )}
+        </div>
+
+        {/* Password */}
+        <div>
+          <div style={{ position: "relative" }}>
+            <input
+              {...register("password")}
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              className="input-field"
+              style={{ paddingRight: "3rem", fontFamily: "var(--font-body)" }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: "absolute",
+                right: "0.75rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "var(--text-muted)",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                padding: "0.25rem",
+                display: "flex",
+                alignItems: "center",
+                transition: "color 0.15s",
+              }}
+              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = "var(--orange)"}
+              onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = "var(--text-muted)"}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+          {errors.password && (
+            <p style={{ fontSize: "0.8125rem", color: "var(--red)", marginTop: "0.375rem", fontWeight: 500 }}>
+              {errors.password.message}
+            </p>
+          )}
+        </div>
+
+        {/* Remember me + forgot password */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "0.875rem" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={e => setRememberMe(e.target.checked)}
+              style={{ width: "1rem", height: "1rem", accentColor: "var(--orange)", cursor: "pointer" }}
+            />
+            <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>Remember me</span>
+          </label>
+          <Link
+            href="/forgot-password"
+            style={{ color: "var(--orange)", fontWeight: 600, textDecoration: "none", transition: "opacity 0.15s" }}
+            onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "0.75"}
+            onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "1"}
           >
-            {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
-          </button>
+            Forgot password?
+          </Link>
         </div>
-        {errors.password && (
-          <p className="text-sm text-red-600 -mt-2">{errors.password.message}</p>
-        )}
-      </div>
 
-      <div className="flex items-center justify-between text-sm">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={rememberMe}
-            onChange={(e) => setRememberMe(e.target.checked)}
-            className="w-4 h-4 text-orange border-divider rounded focus:ring-orange/50"
-          />
-          <span className="text-text-secondary">Remember me</span>
-        </label>
+        <button type="submit" disabled={isSubmitting} className="btn-primary">
+          <span>{isSubmitting ? "Logging in..." : "Log In"}</span>
+        </button>
 
-        <Link
-          href="/forgot-password"
-          className="text-orange font-medium hover:underline"
-        >
-          Forgot password?
-        </Link>
-      </div>
+        {/* Divider */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <div style={{ flex: 1, height: "1px", background: "var(--border)" }} />
+          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.1em" }}>or</span>
+          <div style={{ flex: 1, height: "1px", background: "var(--border)" }} />
+        </div>
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="btn-primary"
-      >
-        {isSubmitting ? "Logging in..." : "Log In"}
-      </button>
-
-      <p className="text-center text-text-secondary">
-        Don&apos;t have an account?{" "}
-        <Link href="/register" className="text-orange font-bold hover:underline">
-          Register now
-        </Link>
-      </p>
-    </form>
+        <p style={{ textAlign: "center", color: "var(--text-secondary)", fontSize: "0.9375rem" }}>
+          Don't have an account?{" "}
+          <Link
+            href="/register"
+            style={{ color: "var(--orange)", fontWeight: 700, textDecoration: "none" }}
+            onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.textDecoration = "underline"}
+            onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.textDecoration = "none"}
+          >
+            Register now
+          </Link>
+        </p>
+      </form>
+    </div>
   );
 }
