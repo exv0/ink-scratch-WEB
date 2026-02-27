@@ -11,6 +11,48 @@ import { useRouter } from "next/navigation";
 import { authService } from "@/lib/services/auth.service";
 import { cookieUtils } from "@/lib/cookies";
 
+// ── Helper: field wrapper with error ─────────────────────────────────────────
+function Field({ children, error }: { children: React.ReactNode; error?: string }) {
+  return (
+    <div>
+      {children}
+      {error && (
+        <p style={{ fontSize: "0.8125rem", color: "var(--red)", marginTop: "0.375rem", fontWeight: 500 }}>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ── Password visibility button ────────────────────────────────────────────────
+function ToggleVis({ show, onToggle }: { show: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      style={{
+        position: "absolute",
+        right: "0.75rem",
+        top: "50%",
+        transform: "translateY(-50%)",
+        color: "var(--text-muted)",
+        background: "transparent",
+        border: "none",
+        cursor: "pointer",
+        padding: "0.25rem",
+        display: "flex",
+        alignItems: "center",
+        transition: "color 0.15s",
+      }}
+      onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = "var(--orange)"}
+      onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = "var(--text-muted)"}
+    >
+      {show ? <EyeOff size={18} /> : <Eye size={18} />}
+    </button>
+  );
+}
+
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -30,23 +72,12 @@ export default function RegisterForm() {
   const onSubmit = async (data: RegisterFormData) => {
     setError("");
     setSuccess("");
-
     try {
-      // Call backend API
       const result = await authService.register(data);
-
-      // Store token and user data in cookies (always remember for registration)
       cookieUtils.setToken(result.token, true);
       cookieUtils.setUser(result.data, true);
-
-      setSuccess("Account created successfully! Redirecting...");
-      
-      console.log("Registration successful:", result);
-
-      // Redirect to dashboard after a brief delay
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 1500);
+      setSuccess("Account created! Redirecting to your dashboard…");
+      setTimeout(() => router.push("/dashboard"), 1500);
     } catch (err: unknown) {
       console.error("Registration error:", err);
       setError((err as Error).message || "An unexpected error occurred. Please try again.");
@@ -54,135 +85,121 @@ export default function RegisterForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="text-center">
-        <h1 className="logo-gradient">Ink Scratch</h1>
-        <p className="mt-3 text-text-secondary text-lg">
+    <div className="fade-up">
+      {/* Header */}
+      <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
+          <div style={{
+            width: "2.25rem",
+            height: "2.25rem",
+            borderRadius: "0.625rem",
+            background: "linear-gradient(135deg, var(--orange), var(--red))",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "var(--shadow-orange)",
+          }}>
+            <span style={{ color: "#fff", fontWeight: 900, fontSize: "0.75rem", fontFamily: "var(--font-display)" }}>IS</span>
+          </div>
+          <span style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "1.625rem",
+            letterSpacing: "0.06em",
+            background: "linear-gradient(135deg, var(--orange), var(--red))",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}>
+            INK SCRATCH
+          </span>
+        </div>
+
+        <h1 style={{ fontFamily: "var(--font-display)", fontSize: "1.875rem", letterSpacing: "0.04em", color: "var(--text-primary)", lineHeight: 1, marginBottom: "0.375rem" }}>
+          CREATE ACCOUNT
+        </h1>
+        <p style={{ color: "var(--text-secondary)", fontSize: "0.9375rem" }}>
           Join and start reading instantly
         </p>
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {error}
+      <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
+        {error && <div className="alert-error">{error}</div>}
+        {success && <div className="alert-success">{success}</div>}
+
+        {/* Full Name */}
+        <Field error={errors.fullName?.message}>
+          <input {...register("fullName")} type="text" placeholder="Full Name" className="input-field" />
+        </Field>
+
+        {/* Phone + Gender row */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+          <Field error={errors.phoneNumber?.message}>
+            <input {...register("phoneNumber")} type="tel" placeholder="Phone Number" className="input-field" />
+          </Field>
+          <Field error={errors.gender?.message}>
+            <select {...register("gender")} className="input-field" style={{ color: "var(--text-primary)" }}>
+              <option value="" style={{ background: "var(--bg-card)" }}>Gender</option>
+              <option value="male" style={{ background: "var(--bg-card)" }}>Male</option>
+              <option value="female" style={{ background: "var(--bg-card)" }}>Female</option>
+              <option value="other" style={{ background: "var(--bg-card)" }}>Other</option>
+            </select>
+          </Field>
         </div>
-      )}
 
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-          {success}
-        </div>
-      )}
+        {/* Username */}
+        <Field error={errors.username?.message}>
+          <input {...register("username")} type="text" placeholder="Username" className="input-field" />
+        </Field>
 
-      <div className="space-y-4">
-        <input
-          {...register("fullName")}
-          type="text"
-          placeholder="Full Name"
-          className="input-field"
-        />
-        {errors.fullName && (
-          <p className="text-sm text-red-600 -mt-2">{errors.fullName.message}</p>
-        )}
+        {/* Email */}
+        <Field error={errors.email?.message}>
+          <input {...register("email")} type="email" placeholder="Email address" className="input-field" />
+        </Field>
 
-        <input
-          {...register("phoneNumber")}
-          type="tel"
-          placeholder="Phone Number"
-          className="input-field"
-        />
-        {errors.phoneNumber && (
-          <p className="text-sm text-red-600 -mt-2">{errors.phoneNumber.message}</p>
-        )}
+        {/* Password */}
+        <Field error={errors.password?.message}>
+          <div style={{ position: "relative" }}>
+            <input
+              {...register("password")}
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              className="input-field"
+              style={{ paddingRight: "3rem" }}
+            />
+            <ToggleVis show={showPassword} onToggle={() => setShowPassword(v => !v)} />
+          </div>
+        </Field>
 
-        <select
-          {...register("gender")}
-          className="input-field"
-        >
-          <option value="">Select Gender</option>
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-          <option value="other">Other</option>
-        </select>
-        {errors.gender && (
-          <p className="text-sm text-red-600 -mt-2">{errors.gender.message}</p>
-        )}
+        {/* Confirm Password */}
+        <Field error={errors.confirmPassword?.message}>
+          <div style={{ position: "relative" }}>
+            <input
+              {...register("confirmPassword")}
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirm Password"
+              className="input-field"
+              style={{ paddingRight: "3rem" }}
+            />
+            <ToggleVis show={showConfirmPassword} onToggle={() => setShowConfirmPassword(v => !v)} />
+          </div>
+        </Field>
 
-        <input
-          {...register("username")}
-          type="text"
-          placeholder="Username"
-          className="input-field"
-        />
-        {errors.username && (
-          <p className="text-sm text-red-600 -mt-2">{errors.username.message}</p>
-        )}
+        <button type="submit" disabled={isSubmitting} className="btn-primary" style={{ marginTop: "0.375rem" }}>
+          <span>{isSubmitting ? "Creating Account…" : "Create Account"}</span>
+        </button>
 
-        <input
-          {...register("email")}
-          type="email"
-          placeholder="Email"
-          className="input-field"
-        />
-        {errors.email && (
-          <p className="text-sm text-red-600 -mt-2">{errors.email.message}</p>
-        )}
-
-        <div className="relative">
-          <input
-            {...register("password")}
-            type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            className="input-field pr-12"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition"
+        <p style={{ textAlign: "center", color: "var(--text-secondary)", fontSize: "0.9375rem" }}>
+          Already have an account?{" "}
+          <Link
+            href="/login"
+            style={{ color: "var(--orange)", fontWeight: 700, textDecoration: "none" }}
+            onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.textDecoration = "underline"}
+            onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.textDecoration = "none"}
           >
-            {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
-          </button>
-        </div>
-        {errors.password && (
-          <p className="text-sm text-red-600 -mt-2">{errors.password.message}</p>
-        )}
-
-        <div className="relative">
-          <input
-            {...register("confirmPassword")}
-            type={showConfirmPassword ? "text" : "password"}
-            placeholder="Confirm Password"
-            className="input-field pr-12"
-          />
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition"
-          >
-            {showConfirmPassword ? <EyeOff size={22} /> : <Eye size={22} />}
-          </button>
-        </div>
-        {errors.confirmPassword && (
-          <p className="text-sm text-red-600 -mt-2">
-            {errors.confirmPassword.message}
-          </p>
-        )}
-      </div>
-
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="btn-primary"
-      >
-        {isSubmitting ? "Creating Account..." : "Register"}
-      </button>
-
-      <p className="text-center text-text-secondary">
-        Already have an account?{" "}
-        <Link href="/login" className="text-orange font-bold hover:underline">
-          Log In
-        </Link>
-      </p>
-    </form>
+            Log In
+          </Link>
+        </p>
+      </form>
+    </div>
   );
 }
