@@ -1,196 +1,226 @@
-// app/(auth)/reset-password/page.tsx - NEW FILE
+// app/(auth)/reset-password/page.tsx
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 import { authService } from "@/lib/services/auth.service";
 
-function ResetPasswordForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token');
+type Status = "loading" | "valid" | "invalid" | "success";
 
+export default function ResetPasswordPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const token = searchParams.get("token") || "";
+
+  const [status, setStatus] = useState<Status>("loading");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(true);
-  const [isValidToken, setIsValidToken] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [showPass, setShowPass] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const verifyToken = async () => {
-      if (!token) {
-        setMessage({ type: 'error', text: 'Invalid reset link' });
-        setIsVerifying(false);
-        return;
-      }
-
-      try {
-        await authService.verifyResetToken(token);
-        setIsValidToken(true);
-      } catch (error: unknown) {
-        setMessage({ type: 'error', text: (error as Error).message || 'Invalid or expired reset token' });
-        setIsValidToken(false);
-      } finally {
-        setIsVerifying(false);
-      }
-    };
-
-    verifyToken();
+    if (!token) { setStatus("invalid"); return; }
+    authService.verifyResetToken(token)
+      .then(() => setStatus("valid"))
+      .catch(() => setStatus("invalid"));
   }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (password !== confirmPassword) {
-      setMessage({ type: 'error', text: 'Passwords do not match' });
-      return;
-    }
+    setError("");
 
     if (password.length < 6) {
-      setMessage({ type: 'error', text: 'Password must be at least 6 characters' });
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
       return;
     }
 
-    setIsLoading(true);
-    setMessage(null);
-
+    setIsSubmitting(true);
     try {
-      const result = await authService.resetPassword({
-        token: token!,
-        password,
-        confirmPassword,
-      });
-
-      setMessage({ type: 'success', text: result.message });
-      
-      // Redirect to login after 2 seconds
-      setTimeout(() => {
-        router.push('/login');
-      }, 2000);
-    } catch (error: unknown) {
-      setMessage({ type: 'error', text: (error as Error).message });
+      await authService.resetPassword({ token, password, confirmPassword });
+      setStatus("success");
+      setTimeout(() => router.push("/login"), 2500);
+    } catch (err: any) {
+      setError(err.message || "Failed to reset password. The link may have expired.");
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  if (isVerifying) {
+  // ── Loading ────────────────────────────────────────────────────────────────
+  if (status === "loading") {
     return (
-      <div className="auth-container">
-        <div className="auth-card text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mx-auto"></div>
-          <p className="text-purple-300 mt-4">Verifying reset link...</p>
-        </div>
+      <div style={{ textAlign: "center", padding: "3rem 0" }}>
+        <div style={{
+          width: "2.5rem", height: "2.5rem", borderRadius: "50%",
+          border: "3px solid var(--border)",
+          borderTopColor: "var(--orange)",
+          animation: "spin 0.8s linear infinite",
+          margin: "0 auto 1rem",
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <p style={{ color: "var(--text-muted)" }}>Verifying your link…</p>
       </div>
     );
   }
 
-  if (!isValidToken) {
+  // ── Invalid / expired token ────────────────────────────────────────────────
+  if (status === "invalid") {
     return (
-      <div className="auth-container">
-        <div className="auth-card text-center">
-          <div className="text-5xl mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold text-white mb-4">Invalid Reset Link</h1>
-          {message && (
-            <p className="text-red-300 mb-6">{message.text}</p>
-          )}
-          <p className="text-purple-300 mb-6">
-            This password reset link is invalid or has expired.
-          </p>
-          <Link href="/forgot-password" className="text-orange font-medium hover:underline">
-            Request a new reset link →
-          </Link>
+      <div className="fade-up" style={{ textAlign: "center" }}>
+        <div style={{
+          width: "4rem", height: "4rem", borderRadius: "50%",
+          background: "rgba(230,57,70,0.1)",
+          border: "2px solid rgba(230,57,70,0.3)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          margin: "0 auto 1.5rem",
+        }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth={2} style={{ width: "1.75rem", height: "1.75rem" }}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </div>
+        <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2rem", letterSpacing: "0.04em", color: "var(--text-primary)", marginBottom: "0.75rem" }}>
+          LINK EXPIRED
+        </h1>
+        <p style={{ color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: "2rem" }}>
+          This password reset link is invalid or has expired. Reset links are only valid for 1 hour.
+        </p>
+        <Link href="/forgot-password">
+          <button className="btn-primary">
+            <span>Request a New Link</span>
+          </button>
+        </Link>
       </div>
     );
   }
 
+  // ── Success ────────────────────────────────────────────────────────────────
+  if (status === "success") {
+    return (
+      <div className="fade-up" style={{ textAlign: "center" }}>
+        <div style={{
+          width: "4rem", height: "4rem", borderRadius: "50%",
+          background: "rgba(34,197,94,0.1)",
+          border: "2px solid rgba(34,197,94,0.3)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          margin: "0 auto 1.5rem",
+        }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth={2} style={{ width: "1.75rem", height: "1.75rem" }}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2rem", letterSpacing: "0.04em", color: "var(--text-primary)", marginBottom: "0.75rem" }}>
+          PASSWORD RESET
+        </h1>
+        <p style={{ color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: "2rem" }}>
+          Your password has been updated. Redirecting you to login…
+        </p>
+        <Link href="/login">
+          <button className="btn-primary">
+            <span>Go to Log In</span>
+          </button>
+        </Link>
+      </div>
+    );
+  }
+
+  // ── Reset form ─────────────────────────────────────────────────────────────
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <div className="text-center mb-8">
-          <h1 className="logo-gradient mb-2">Set New Password</h1>
-          <p className="text-text-secondary">
-            Enter your new password below
-          </p>
+    <div className="fade-up">
+      <div style={{ marginBottom: "2rem" }}>
+        <div style={{
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          width: "3rem", height: "3rem", borderRadius: "0.875rem",
+          background: "var(--orange-dim)",
+          border: "1px solid rgba(255,107,53,0.25)",
+          marginBottom: "1.25rem",
+        }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" strokeWidth={1.8} style={{ width: "1.5rem", height: "1.5rem" }}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+          </svg>
         </div>
 
-        {message && (
-          <div className={`mb-6 p-4 rounded-lg border ${
-            message.type === 'success'
-              ? 'bg-green-900/20 border-green-500 text-green-300'
-              : 'bg-red-900/20 border-red-500 text-red-300'
-          }`}>
-            {message.text}
+        <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2rem", letterSpacing: "0.04em", color: "var(--text-primary)", lineHeight: 1, marginBottom: "0.5rem" }}>
+          NEW PASSWORD
+        </h1>
+        <p style={{ color: "var(--text-secondary)", fontSize: "0.9375rem" }}>
+          Choose a strong password for your account.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+        {error && <div className="alert-error">{error}</div>}
+
+        <div style={{ position: "relative" }}>
+          <input
+            type={showPass ? "text" : "password"}
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="New password"
+            className="input-field"
+            style={{ paddingRight: "3rem" }}
+            autoFocus
+          />
+          <button type="button" onClick={() => setShowPass(v => !v)} style={{
+            position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)",
+            color: "var(--text-muted)", background: "transparent", border: "none", cursor: "pointer", padding: "0.25rem", display: "flex", alignItems: "center",
+          }}>
+            {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
+
+        <div style={{ position: "relative" }}>
+          <input
+            type={showConfirm ? "text" : "password"}
+            value={confirmPassword}
+            onChange={e => setConfirmPassword(e.target.value)}
+            placeholder="Confirm new password"
+            className="input-field"
+            style={{ paddingRight: "3rem" }}
+          />
+          <button type="button" onClick={() => setShowConfirm(v => !v)} style={{
+            position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)",
+            color: "var(--text-muted)", background: "transparent", border: "none", cursor: "pointer", padding: "0.25rem", display: "flex", alignItems: "center",
+          }}>
+            {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
+
+        {/* Strength hint */}
+        {password.length > 0 && (
+          <div style={{ display: "flex", gap: "0.375rem", alignItems: "center" }}>
+            {[1, 2, 3, 4].map(level => (
+              <div key={level} style={{
+                flex: 1, height: "3px", borderRadius: "9999px",
+                background: password.length >= level * 2
+                  ? level <= 1 ? "var(--red)" : level <= 2 ? "var(--orange)" : level <= 3 ? "#facc15" : "#4ade80"
+                  : "var(--border)",
+                transition: "background 0.3s",
+              }} />
+            ))}
+            <span style={{ fontSize: "0.6875rem", color: "var(--text-muted)", fontFamily: "var(--font-mono)", whiteSpace: "nowrap", marginLeft: "0.25rem" }}>
+              {password.length < 6 ? "Too short" : password.length < 8 ? "Weak" : password.length < 12 ? "Good" : "Strong"}
+            </span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-purple-300 mb-2">
-              New Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter new password"
-              className="input-field"
-              required
-              disabled={isLoading}
-              minLength={6}
-            />
-            <p className="text-xs text-purple-400 mt-1">Minimum 6 characters</p>
-          </div>
+        <button type="submit" disabled={isSubmitting} className="btn-primary">
+          <span>{isSubmitting ? "Resetting…" : "Reset Password"}</span>
+        </button>
 
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-purple-300 mb-2">
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm new password"
-              className="input-field"
-              required
-              disabled={isLoading}
-            />
-          </div>
-
-          <button 
-            type="submit" 
-            className="btn-primary w-full"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Resetting Password...' : 'Reset Password'}
-          </button>
-
-          <div className="text-center">
-            <Link href="/login" className="text-orange font-medium hover:underline">
-              ← Back to Login
-            </Link>
-          </div>
-        </form>
-      </div>
+        <p style={{ textAlign: "center", color: "var(--text-secondary)", fontSize: "0.9375rem" }}>
+          <Link href="/login" style={{ color: "var(--orange)", fontWeight: 600, textDecoration: "none" }}>
+            Back to Log In
+          </Link>
+        </p>
+      </form>
     </div>
-  );
-}
-
-export default function ResetPasswordPage() {
-  return (
-    <Suspense fallback={
-      <div className="auth-container">
-        <div className="auth-card text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mx-auto"></div>
-        </div>
-      </div>
-    }>
-      <ResetPasswordForm />
-    </Suspense>
   );
 }
