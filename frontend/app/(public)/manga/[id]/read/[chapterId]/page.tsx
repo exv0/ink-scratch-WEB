@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { mangaService, ChapterWithPages, ChapterPage, Chapter } from "@/lib/services/manga.service";
+import { historyService } from "@/lib/services/history.service";
 
 type ReadMode = "vertical" | "paged";
 type FitMode  = "width" | "height" | "original";
@@ -77,7 +78,11 @@ export default function ChapterReaderPage() {
   const [currentPage,  setCurrentPage]  = useState(1);
   const [uiVisible,    setUiVisible]    = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hideTimer    = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Store manga info for history tracking (fetched once)
+  const mangaInfoRef = useRef<{ title: string; coverImage: string } | null>(null);
+  // Debounce ref so we don't spam the backend on every page turn
+  const saveTimer    = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -97,6 +102,31 @@ export default function ChapterReaderPage() {
 
         const freshPages = await mangaService.getFreshPages(chapterData.sourceId);
         setPages(freshPages);
+
+        // Fetch manga info for cover image if we don't have it yet
+        if (!mangaInfoRef.current) {
+          try {
+            const mangaRes = await mangaService.getById(mangaId);
+            mangaInfoRef.current = {
+              title:      mangaRes.data.title,
+              coverImage: mangaRes.data.coverImage ?? "",
+            };
+          } catch {
+            mangaInfoRef.current = { title: "", coverImage: "" };
+          }
+        }
+
+        // Save to history immediately on chapter open (progress = 0)
+        historyService.update({
+          mangaId,
+          title:         mangaInfoRef.current?.title      ?? "",
+          coverImage:    mangaInfoRef.current?.coverImage ?? "",
+          chapterId,
+          chapterNumber: chapterData.chapterNumber,
+          chapterTitle:  chapterData.title ?? "",
+          progress:      0,
+        });
+
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -110,6 +140,27 @@ export default function ChapterReaderPage() {
   const prevChapter  = currentIndex > 0 ? allChapters[currentIndex - 1] : null;
   const nextChapter  = currentIndex < allChapters.length - 1 ? allChapters[currentIndex + 1] : null;
   const totalPages   = pages.length;
+
+  // ── Save progress whenever currentPage changes (debounced 2s) ─────────────
+  useEffect(() => {
+    if (!chapter || totalPages === 0 || !mangaInfoRef.current) return;
+    const progress = Math.round((currentPage / totalPages) * 100);
+
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      historyService.update({
+        mangaId,
+        title:         mangaInfoRef.current?.title      ?? "",
+        coverImage:    mangaInfoRef.current?.coverImage ?? "",
+        chapterId,
+        chapterNumber: chapter.chapterNumber,
+        chapterTitle:  chapter.title ?? "",
+        progress,
+      });
+    }, 2000);
+
+    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
+  }, [currentPage, totalPages, chapter, chapterId, mangaId]);
 
   const resetHideTimer = useCallback(() => {
     setUiVisible(true);
@@ -269,7 +320,7 @@ export default function ChapterReaderPage() {
       {readMode === "vertical" ? (
         <div className="pt-[57px]">
           {pages.map(page => (
-            <div key={page.index} data-page={page.index}>
+            <div key={page.index} data-page={page.index + 1}>
               <MangaPageImage page={page} fitMode={fitMode} />
             </div>
           ))}

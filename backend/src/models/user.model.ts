@@ -16,6 +16,18 @@ const LibraryEntrySchema = new Schema({
   addedAt:    { type: Date, default: Date.now },
 }, { _id: false });
 
+// ── Reading history entry (embedded in user document) ─────────────────────────
+const ReadingHistorySchema = new Schema({
+  mangaId:       { type: String, required: true },
+  title:         { type: String, required: true },
+  coverImage:    { type: String, default: "" },
+  chapterId:     { type: String, required: true },
+  chapterNumber: { type: Number, required: true },
+  chapterTitle:  { type: String, default: "" },
+  progress:      { type: Number, default: 0, min: 0, max: 100 }, // percent 0–100
+  updatedAt:     { type: Date, default: Date.now },
+}, { _id: false });
+
 const UserSchema: Schema = new Schema(
   {
     email:          { type: String, required: true, unique: true },
@@ -30,6 +42,8 @@ const UserSchema: Schema = new Schema(
     theme:          { type: String, enum: ["light", "dark", "system"], default: "system" },
     // ✅ Library — array of saved manga
     library:        { type: [LibraryEntrySchema], default: [] },
+    // ✅ Reading history — last 20 manga read, most recent first
+    readingHistory: { type: [ReadingHistorySchema], default: [] },
     // Password reset
     resetPasswordToken:   { type: String },
     resetPasswordExpires: { type: Date },
@@ -38,16 +52,27 @@ const UserSchema: Schema = new Schema(
 );
 
 export interface ILibraryEntry {
-  mangaId:     string;
-  title:       string;
-  author:      string;
-  coverImage?: string;
-  status:      string;
-  genre:       string[];
-  rating:      number;
-  year?:       number;
+  mangaId:      string;
+  title:        string;
+  author:       string;
+  coverImage?:  string;
+  status:       string;
+  genre:        string[];
+  rating:       number;
+  year?:        number;
   description?: string;
-  addedAt:     Date;
+  addedAt:      Date;
+}
+
+export interface IReadingHistory {
+  mangaId:       string;
+  title:         string;
+  coverImage?:   string;
+  chapterId:     string;
+  chapterNumber: number;
+  chapterTitle?: string;
+  progress:      number;
+  updatedAt:     Date;
 }
 
 export interface IUser extends Document {
@@ -63,6 +88,7 @@ export interface IUser extends Document {
   role:             "user" | "admin";
   theme:            "light" | "dark" | "system";
   library:          ILibraryEntry[];
+  readingHistory:   IReadingHistory[];
   resetPasswordToken?:   string;
   resetPasswordExpires?: Date;
   createdAt:        Date;

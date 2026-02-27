@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import path from "path"; 
 import libraryRoutes from "./routes/library.routes";
-
+import historyRoutes from "./routes/history.routes";
 
 import { connectDatabase } from "./database/mongodb";
 import { PORT } from "./config";
@@ -31,10 +31,12 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello world");
 });
-app.use("/api/library", libraryRoutes);
+
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/manga", mangaRoutes);
+app.use("/api/library", libraryRoutes);
+app.use("/api/history", historyRoutes);
 
 async function startServer() {
   try {
