@@ -1,9 +1,11 @@
+// app/(public)/_components/Header.tsx
 "use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useRef, useEffect } from "react";
+import ThemeToggle from "./ThemeToggle";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const Icons = {
@@ -50,11 +52,10 @@ const Icons = {
   ),
 };
 
-// ─── NavLink — hydration fix: compute active only on client ──────────────────
+// ─── NavLink ──────────────────────────────────────────────────────────────────
 function NavLink({ href, label }: { href: string; label: string }) {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
-
   useEffect(() => { setMounted(true); }, []);
 
   const active = mounted
@@ -62,44 +63,100 @@ function NavLink({ href, label }: { href: string; label: string }) {
     : false;
 
   return (
-    <Link
-      href={href}
-      className={`relative px-4 py-2 text-sm font-bold rounded-xl transition-all duration-200 ${
-        active
-          ? "text-orange-500 bg-orange-500/10"
-          : "text-gray-700 hover:text-orange-500 hover:bg-orange-500/5"
-      }`}
-    >
-      {label}
-      {/* Active underline — only render when mounted+active to avoid hydration mismatch */}
-      {mounted && active && (
-        <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-[2px] bg-gradient-to-r from-orange-500 to-red-500 rounded-full" />
-      )}
+    <Link href={href}>
+      <span
+        style={{
+          position: "relative",
+          display: "inline-flex",
+          alignItems: "center",
+          padding: "0.4375rem 0.875rem",
+          fontSize: "0.875rem",
+          fontWeight: 700,
+          borderRadius: "0.625rem",
+          transition: "all 0.15s",
+          color: active ? "var(--orange)" : "var(--text-secondary)",
+          background: active ? "var(--orange-dim)" : "transparent",
+          cursor: "pointer",
+        }}
+        onMouseEnter={e => {
+          if (!active) {
+            (e.currentTarget as HTMLSpanElement).style.color = "var(--orange)";
+            (e.currentTarget as HTMLSpanElement).style.background = "var(--orange-dim)";
+          }
+        }}
+        onMouseLeave={e => {
+          if (!active) {
+            (e.currentTarget as HTMLSpanElement).style.color = "var(--text-secondary)";
+            (e.currentTarget as HTMLSpanElement).style.background = "transparent";
+          }
+        }}
+      >
+        {label}
+        {mounted && active && (
+          <span
+            style={{
+              position: "absolute",
+              bottom: "2px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: "16px",
+              height: "2px",
+              background: "linear-gradient(to right, var(--orange), var(--red))",
+              borderRadius: "9999px",
+            }}
+          />
+        )}
+      </span>
     </Link>
   );
 }
 
 // ─── Dropdown helpers ─────────────────────────────────────────────────────────
-function DDLink({
-  href, icon, label, badge, highlight,
-}: {
+function DDLink({ href, icon, label, badge, highlight }: {
   href: string; icon: React.ReactNode; label: string; badge?: string; highlight?: boolean;
 }) {
   return (
     <Link href={href}>
-      <div className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-150 group cursor-pointer ${
-        highlight ? "hover:bg-orange-500/8" : "hover:bg-gray-50"
-      }`}>
-        <div className="flex items-center gap-3">
-          <span className={`transition-colors ${highlight ? "text-orange-500" : "text-gray-400 group-hover:text-orange-500"}`}>
-            {icon}
-          </span>
-          <span className={`text-[13px] font-semibold ${highlight ? "text-orange-500" : "text-gray-800"}`}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0.5625rem 0.75rem",
+          borderRadius: "0.625rem",
+          cursor: "pointer",
+          transition: "background 0.15s",
+        }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLDivElement).style.background = highlight
+            ? "rgba(255,107,53,0.08)"
+            : "var(--bg-1)";
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLDivElement).style.background = "transparent";
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <span style={{ color: highlight ? "var(--orange)" : "var(--text-muted)" }}>{icon}</span>
+          <span style={{
+            fontSize: "0.8125rem",
+            fontWeight: 600,
+            color: highlight ? "var(--orange)" : "var(--text-primary)",
+          }}>
             {label}
           </span>
         </div>
         {badge && (
-          <span className="text-[9px] font-black bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-0.5 rounded-full tracking-widest uppercase">
+          <span style={{
+            fontSize: "0.5625rem",
+            fontWeight: 900,
+            background: "linear-gradient(135deg, var(--orange), var(--red))",
+            color: "#fff",
+            padding: "0.125rem 0.5rem",
+            borderRadius: "9999px",
+            letterSpacing: "0.15em",
+            textTransform: "uppercase",
+          }}>
             {badge}
           </span>
         )}
@@ -112,21 +169,52 @@ function DDButton({ icon, label, onClick, danger }: {
   icon: React.ReactNode; label: string; onClick: () => void; danger?: boolean;
 }) {
   return (
-    <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-150 text-left ${
-      danger ? "hover:bg-red-50 text-red-500" : "hover:bg-gray-50 text-gray-800"
-    }`}>
-      <span className={danger ? "text-red-400" : "text-gray-400"}>{icon}</span>
-      <span className="text-[13px] font-semibold">{label}</span>
+    <button
+      onClick={onClick}
+      style={{
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        gap: "0.75rem",
+        padding: "0.5625rem 0.75rem",
+        borderRadius: "0.625rem",
+        border: "none",
+        background: "transparent",
+        cursor: "pointer",
+        textAlign: "left",
+        transition: "background 0.15s",
+        color: danger ? "#f87171" : "var(--text-primary)",
+      }}
+      onMouseEnter={e => {
+        (e.currentTarget as HTMLButtonElement).style.background = danger
+          ? "rgba(248, 113, 113, 0.08)"
+          : "var(--bg-1)";
+      }}
+      onMouseLeave={e => {
+        (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+      }}
+    >
+      <span style={{ color: danger ? "#f87171" : "var(--text-muted)" }}>{icon}</span>
+      <span style={{ fontSize: "0.8125rem", fontWeight: 600 }}>{label}</span>
     </button>
   );
 }
 
 function SectionLabel({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-2 px-1 pt-2 pb-1">
-      <div className="flex-1 h-px bg-gray-100" />
-      <span className="text-[9px] font-black text-gray-400 tracking-widest uppercase">{label}</span>
-      <div className="flex-1 h-px bg-gray-100" />
+    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 0.25rem 0.25rem" }}>
+      <div style={{ flex: 1, height: "1px", background: "var(--border)" }} />
+      <span style={{
+        fontSize: "0.5625rem",
+        fontWeight: 900,
+        color: "var(--text-muted)",
+        letterSpacing: "0.2em",
+        textTransform: "uppercase",
+        fontFamily: "var(--font-mono)",
+      }}>
+        {label}
+      </span>
+      <div style={{ flex: 1, height: "1px", background: "var(--border)" }} />
     </div>
   );
 }
@@ -142,17 +230,14 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Mount flag — prevents any client-only logic from running on server
   useEffect(() => { setMounted(true); }, []);
 
-  // Scroll shadow
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -163,7 +248,6 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Close menus on route change
   useEffect(() => {
     setDropdownOpen(false);
     setMobileOpen(false);
@@ -174,7 +258,6 @@ export default function Header() {
     router.push("/");
   };
 
-  // Safe active check — only after mount
   const isActive = (href: string) =>
     mounted ? (href === "/" ? pathname === "/" : pathname.startsWith(href)) : false;
 
@@ -189,121 +272,281 @@ export default function Header() {
     ] : []),
   ];
 
+  const headerStyle: React.CSSProperties = {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 50,
+    background: "var(--header-bg)",
+    borderBottom: `1px solid var(--header-border)`,
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+    boxShadow: scrolled ? "var(--shadow-md)" : "none",
+    transition: "box-shadow 0.3s ease",
+  };
+
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      scrolled
-        ? "bg-white/98 backdrop-blur-2xl shadow-lg shadow-black/5 border-b border-gray-100"
-        : "bg-white/95 backdrop-blur-xl border-b border-gray-100"
-    }`}>
+    <header style={headerStyle}>
       {/* Brand accent line */}
-      <div className="h-[2.5px] bg-gradient-to-r from-orange-500 via-red-500 to-orange-400" />
+      <div style={{
+        height: "2.5px",
+        background: "linear-gradient(to right, var(--orange), var(--red), var(--orange))",
+      }} />
 
-      <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-6">
+      <div style={{
+        maxWidth: "80rem",
+        margin: "0 auto",
+        padding: "0.625rem 1.5rem",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "1.5rem",
+      }}>
 
-        {/* ── Logo ─────────────────────────────────────────────────────────── */}
-        <div className="flex items-center gap-8">
-          <Link href="/" className="group shrink-0 flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-md shadow-orange-500/30 group-hover:scale-110 transition-transform duration-200">
-              <span className="text-white text-xs font-black">IS</span>
+        {/* ── Logo + nav ──────────────────────────────────────────────── */}
+        <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
+          <Link href="/" style={{ display: "flex", alignItems: "center", gap: "0.5rem", textDecoration: "none" }}>
+            <div style={{
+              width: "1.75rem",
+              height: "1.75rem",
+              borderRadius: "0.5rem",
+              background: "linear-gradient(135deg, var(--orange), var(--red))",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 2px 8px rgba(255,107,53,0.35)",
+              flexShrink: 0,
+            }}>
+              <span style={{ color: "#fff", fontSize: "0.6875rem", fontWeight: 900 }}>IS</span>
             </div>
-            <span className="bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 bg-clip-text text-transparent text-[20px] font-black tracking-tight group-hover:opacity-80 transition-opacity">
-              Ink Scratch
+            <span style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "1.375rem",
+              letterSpacing: "0.06em",
+              background: "linear-gradient(135deg, var(--orange), var(--red))",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}>
+              INK SCRATCH
             </span>
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-0.5">
+          <nav style={{ display: "flex", alignItems: "center", gap: "0.125rem" }} className="hidden md:flex">
             {navLinks.map(link => (
               <NavLink key={link.href} href={link.href} label={link.label} />
             ))}
           </nav>
         </div>
 
-        {/* ── Right side ───────────────────────────────────────────────────── */}
-        <div className="flex items-center gap-2">
+        {/* ── Right side ───────────────────────────────────────────────── */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
 
-          {/* Only render auth-dependent UI after mount to avoid hydration mismatch */}
+          {/* Theme toggle — always visible */}
+          <ThemeToggle variant="compact" />
+
           {!mounted ? (
-            // Placeholder to prevent layout shift
-            <div className="w-24 h-9" />
+            <div style={{ width: "6rem", height: "2.25rem" }} />
           ) : !isAuthenticated ? (
-            <>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <Link href="/login" className="hidden sm:block">
-                <button className="px-5 py-2 text-sm font-bold text-gray-700 rounded-xl hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all duration-150">
+                <button style={{
+                  padding: "0.5rem 1.125rem",
+                  fontSize: "0.875rem",
+                  fontWeight: 700,
+                  color: "var(--text-secondary)",
+                  background: "transparent",
+                  border: "1px solid var(--border)",
+                  borderRadius: "0.625rem",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--orange)";
+                    (e.currentTarget as HTMLButtonElement).style.color = "var(--orange)";
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border)";
+                    (e.currentTarget as HTMLButtonElement).style.color = "var(--text-secondary)";
+                  }}
+                >
                   Log In
                 </button>
               </Link>
               <Link href="/register">
-                <button className="relative px-5 py-2 text-sm font-bold text-white bg-gradient-to-r from-orange-500 to-red-500 rounded-xl shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-105 transition-all duration-200 overflow-hidden group">
-                  <span className="relative z-10">Sign Up Free</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                <button style={{
+                  padding: "0.5rem 1.125rem",
+                  fontSize: "0.875rem",
+                  fontWeight: 700,
+                  color: "#fff",
+                  background: "linear-gradient(135deg, var(--orange), var(--red))",
+                  border: "none",
+                  borderRadius: "0.625rem",
+                  cursor: "pointer",
+                  boxShadow: "var(--shadow-orange)",
+                  transition: "all 0.2s",
+                }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)";
+                    (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 6px 20px rgba(255,107,53,0.45)";
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLButtonElement).style.transform = "";
+                    (e.currentTarget as HTMLButtonElement).style.boxShadow = "var(--shadow-orange)";
+                  }}
+                >
+                  Sign Up Free
                 </button>
               </Link>
-            </>
+            </div>
           ) : (
-            /* Authenticated: avatar + dropdown */
-            <div className="relative" ref={dropdownRef}>
+            /* Authenticated dropdown */
+            <div style={{ position: "relative" }} ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(v => !v)}
                 aria-label="Open user menu"
                 aria-expanded={dropdownOpen}
-                className={`flex items-center gap-2.5 pl-1.5 pr-3 py-1.5 rounded-xl transition-all duration-150 border ${
-                  dropdownOpen
-                    ? "bg-gray-50 border-gray-200"
-                    : "border-transparent hover:bg-gray-50 hover:border-gray-200"
-                }`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.625rem",
+                  padding: "0.375rem 0.75rem 0.375rem 0.375rem",
+                  borderRadius: "0.75rem",
+                  border: `1px solid ${dropdownOpen ? "var(--border)" : "transparent"}`,
+                  background: dropdownOpen ? "var(--bg-card)" : "transparent",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+                onMouseEnter={e => {
+                  if (!dropdownOpen) {
+                    (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-card)";
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border)";
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!dropdownOpen) {
+                    (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = "transparent";
+                  }
+                }}
               >
                 {/* Avatar */}
-                <div className="relative w-8 h-8 rounded-xl overflow-hidden ring-2 ring-orange-500/20 shrink-0">
+                <div style={{
+                  width: "2rem",
+                  height: "2rem",
+                  borderRadius: "0.625rem",
+                  overflow: "hidden",
+                  border: "2px solid rgba(255,107,53,0.25)",
+                  flexShrink: 0,
+                  position: "relative",
+                }}>
                   {user?.profilePicture ? (
-                    <img src={user.profilePicture} alt={user.username} className="w-full h-full object-cover" />
+                    <img src={user.profilePicture} alt={user.username} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
-                      <span className="text-white text-[11px] font-black">{initials}</span>
+                    <div style={{
+                      width: "100%",
+                      height: "100%",
+                      background: "linear-gradient(135deg, var(--orange), var(--red))",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}>
+                      <span style={{ color: "#fff", fontSize: "0.6875rem", fontWeight: 900 }}>{initials}</span>
                     </div>
                   )}
-                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white" />
+                  <span style={{
+                    position: "absolute",
+                    bottom: "-1px",
+                    right: "-1px",
+                    width: "8px",
+                    height: "8px",
+                    background: "#22c55e",
+                    borderRadius: "50%",
+                    border: "2px solid var(--bg)",
+                  }} />
                 </div>
 
-                <div className="hidden sm:block text-left">
-                  <p className="text-[12px] font-black text-gray-900 leading-none max-w-[100px] truncate">
+                <div className="hidden sm:block" style={{ textAlign: "left" }}>
+                  <p style={{ fontSize: "0.75rem", fontWeight: 900, color: "var(--text-primary)", lineHeight: 1, maxWidth: "100px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {user?.fullName || user?.username}
                   </p>
-                  <p className="text-[10px] text-gray-400 capitalize mt-0.5 leading-none">{user?.role}</p>
+                  <p style={{ fontSize: "0.625rem", color: "var(--text-muted)", textTransform: "capitalize", marginTop: "2px", lineHeight: 1 }}>
+                    {user?.role}
+                  </p>
                 </div>
 
-                <svg className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
-                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <svg
+                  style={{
+                    width: "0.875rem",
+                    height: "0.875rem",
+                    color: "var(--text-muted)",
+                    transition: "transform 0.2s",
+                    transform: dropdownOpen ? "rotate(180deg)" : "none",
+                    flexShrink: 0,
+                  }}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
 
-              {/* ── Dropdown ─────────────────────────────────────────────── */}
+              {/* ── Dropdown ──────────────────────────────────────────── */}
               {dropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-black/10 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-
+                <div
+                  className="slide-down"
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: "calc(100% + 0.5rem)",
+                    width: "16rem",
+                    background: "var(--bg-card)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "1rem",
+                    boxShadow: "var(--shadow-lg)",
+                    overflow: "hidden",
+                    zIndex: 50,
+                  }}
+                >
                   {/* Identity card */}
-                  <div className="relative px-4 py-4 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] overflow-hidden">
-                    <div className="absolute -top-6 -right-6 w-24 h-24 bg-orange-500/20 rounded-full blur-2xl pointer-events-none" />
-                    <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-red-500/15 rounded-full blur-xl pointer-events-none" />
-                    {/* Subtle grid pattern */}
-                    <div className="absolute inset-0 opacity-5"
-                      style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.3) 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
-                    <div className="relative flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-xl overflow-hidden ring-2 ring-white/20 shrink-0 shadow-lg">
+                  <div style={{
+                    position: "relative",
+                    padding: "1rem",
+                    background: "linear-gradient(135deg, #1a1a2e, #0f3460)",
+                    overflow: "hidden",
+                  }}>
+                    <div style={{ position: "absolute", top: "-24px", right: "-24px", width: "96px", height: "96px", background: "rgba(255,107,53,0.2)", borderRadius: "50%", filter: "blur(24px)", pointerEvents: "none" }} />
+                    <div style={{ position: "relative", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                      <div style={{ width: "2.75rem", height: "2.75rem", borderRadius: "0.625rem", overflow: "hidden", border: "2px solid rgba(255,255,255,0.15)", flexShrink: 0 }}>
                         {user?.profilePicture ? (
-                          <img src={user.profilePicture} alt="" className="w-full h-full object-cover" />
+                          <img src={user.profilePicture} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                         ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
-                            <span className="text-white font-black text-lg">{initials}</span>
+                          <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, var(--orange), var(--red))", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <span style={{ color: "#fff", fontWeight: 900, fontSize: "1.125rem" }}>{initials}</span>
                           </div>
                         )}
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-white font-black text-sm leading-tight truncate">{user?.fullName || user?.username}</p>
-                        <p className="text-white/45 text-[11px] truncate mt-0.5">{user?.email}</p>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <p style={{ color: "#fff", fontWeight: 900, fontSize: "0.875rem", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {user?.fullName || user?.username}
+                        </p>
+                        <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.6875rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: "2px" }}>
+                          {user?.email}
+                        </p>
                         {isAdmin && (
-                          <span className="inline-block mt-1.5 text-[9px] font-black bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-0.5 rounded-full tracking-widest uppercase">
+                          <span style={{
+                            display: "inline-block",
+                            marginTop: "0.375rem",
+                            fontSize: "0.5625rem",
+                            fontWeight: 900,
+                            background: "linear-gradient(135deg, var(--orange), var(--red))",
+                            color: "#fff",
+                            padding: "0.125rem 0.5rem",
+                            borderRadius: "9999px",
+                            letterSpacing: "0.15em",
+                            textTransform: "uppercase",
+                          }}>
                             Administrator
                           </span>
                         )}
@@ -311,9 +554,11 @@ export default function Header() {
                     </div>
                   </div>
 
-                  {/* Menu */}
-                  <div className="p-2">
-                    <p className="text-[9px] font-black text-gray-400 tracking-widest uppercase px-3 pt-2 pb-1">Account</p>
+                  {/* Menu items */}
+                  <div style={{ padding: "0.5rem" }}>
+                    <p style={{ fontSize: "0.5625rem", fontWeight: 900, color: "var(--text-muted)", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "var(--font-mono)", padding: "0.5rem 0.75rem 0.25rem" }}>
+                      Account
+                    </p>
                     <DDLink href="/user/profile"  icon={<Icons.User />}      label="My Profile" />
                     <DDLink href="/dashboard"     icon={<Icons.Dashboard />} label="Dashboard" />
                     <DDLink href="/dashboard"     icon={<Icons.Book />}      label="My Library" />
@@ -328,18 +573,24 @@ export default function Header() {
                     <DDLink href="/about" icon={<Icons.Info />} label="About Ink Scratch" />
                     <DDLink href="/help"  icon={<Icons.Help />} label="Help & Support" />
 
-                    <div className="mt-1 pt-1.5 border-t border-gray-100">
+                    <div style={{ marginTop: "0.25rem", paddingTop: "0.375rem", borderTop: "1px solid var(--border)" }}>
                       <DDButton icon={<Icons.Logout />} label="Log Out" onClick={handleLogout} danger />
                     </div>
                   </div>
 
                   {/* Footer */}
-                  <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50/80">
-                    <p className="text-[10px] text-gray-400 text-center">
+                  <div style={{ padding: "0.625rem 1rem", borderTop: "1px solid var(--border)", background: "var(--bg-1)" }}>
+                    <p style={{ fontSize: "0.625rem", color: "var(--text-muted)", textAlign: "center", fontFamily: "var(--font-mono)" }}>
                       © 2025 Ink Scratch &nbsp;·&nbsp;
-                      <Link href="/terms" className="hover:text-orange-500 transition-colors">Terms</Link>
+                      <Link href="/terms" style={{ color: "inherit", textDecoration: "none", transition: "color 0.15s" }}
+                        onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = "var(--orange)"}
+                        onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = "var(--text-muted)"}
+                      >Terms</Link>
                       &nbsp;·&nbsp;
-                      <Link href="/privacy" className="hover:text-orange-500 transition-colors">Privacy</Link>
+                      <Link href="/privacy" style={{ color: "inherit", textDecoration: "none", transition: "color 0.15s" }}
+                        onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = "var(--orange)"}
+                        onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = "var(--text-muted)"}
+                      >Privacy</Link>
                     </p>
                   </div>
                 </div>
@@ -350,29 +601,73 @@ export default function Header() {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileOpen(v => !v)}
-            className="md:hidden p-2 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all ml-1"
+            className="md:hidden"
+            style={{
+              padding: "0.5rem",
+              borderRadius: "0.625rem",
+              border: "1px solid transparent",
+              background: "transparent",
+              cursor: "pointer",
+              transition: "all 0.15s",
+              marginLeft: "0.25rem",
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-card)";
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border)";
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "transparent";
+            }}
             aria-label="Toggle menu"
           >
-            <div className="w-5 flex flex-col gap-[5px]">
-              <span className={`block h-[2px] bg-gray-800 rounded-full transition-all duration-300 origin-center ${mobileOpen ? "rotate-45 translate-y-[7px]" : ""}`} />
-              <span className={`block h-[2px] bg-gray-800 rounded-full transition-all duration-300 ${mobileOpen ? "opacity-0 scale-x-0" : ""}`} />
-              <span className={`block h-[2px] bg-gray-800 rounded-full transition-all duration-300 origin-center ${mobileOpen ? "-rotate-45 -translate-y-[7px]" : ""}`} />
+            <div style={{ width: "1.25rem", display: "flex", flexDirection: "column", gap: "5px" }}>
+              {[0, 1, 2].map(i => (
+                <span key={i} style={{
+                  display: "block",
+                  height: "2px",
+                  background: "var(--text-primary)",
+                  borderRadius: "9999px",
+                  transition: "all 0.3s",
+                  transformOrigin: "center",
+                  transform: mobileOpen
+                    ? i === 0 ? "rotate(45deg) translateY(7px)"
+                    : i === 1 ? "scaleX(0)"
+                    : "rotate(-45deg) translateY(-7px)"
+                    : "none",
+                  opacity: mobileOpen && i === 1 ? 0 : 1,
+                }} />
+              ))}
             </div>
           </button>
         </div>
       </div>
 
-      {/* ── Mobile Menu ──────────────────────────────────────────────────────── */}
+      {/* ── Mobile Menu ────────────────────────────────────────────────────── */}
       {mounted && mobileOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-white/98 backdrop-blur-xl">
-          <div className="px-4 pt-3 pb-2 space-y-0.5">
+        <div
+          className="md:hidden slide-down"
+          style={{
+            borderTop: "1px solid var(--border)",
+            background: "var(--header-bg)",
+            backdropFilter: "blur(20px)",
+          }}
+        >
+          <div style={{ padding: "0.75rem 1rem 0.5rem" }}>
             {navLinks.map(item => {
               const active = isActive(item.href);
               return (
                 <Link key={item.href} href={item.href}>
-                  <div className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-colors ${
-                    active ? "text-orange-500 bg-orange-500/10" : "text-gray-800 hover:bg-gray-50"
-                  }`}>
+                  <div style={{
+                    padding: "0.625rem 1rem",
+                    borderRadius: "0.625rem",
+                    fontSize: "0.875rem",
+                    fontWeight: 700,
+                    color: active ? "var(--orange)" : "var(--text-primary)",
+                    background: active ? "var(--orange-dim)" : "transparent",
+                    transition: "all 0.15s",
+                    cursor: "pointer",
+                  }}>
                     {item.label}
                   </div>
                 </Link>
@@ -382,53 +677,56 @@ export default function Header() {
 
           {isAuthenticated ? (
             <>
-              <div className="mx-4 my-2 p-3 bg-gray-50 rounded-2xl flex items-center gap-3 border border-gray-100">
-                <div className="w-9 h-9 rounded-xl overflow-hidden ring-2 ring-orange-500/20 shrink-0">
+              <div style={{ margin: "0.5rem 1rem", padding: "0.75rem", background: "var(--bg-card)", borderRadius: "0.875rem", display: "flex", alignItems: "center", gap: "0.75rem", border: "1px solid var(--border)" }}>
+                <div style={{ width: "2.25rem", height: "2.25rem", borderRadius: "0.625rem", overflow: "hidden", border: "2px solid rgba(255,107,53,0.25)", flexShrink: 0 }}>
                   {user?.profilePicture ? (
-                    <img src={user.profilePicture} alt="" className="w-full h-full object-cover" />
+                    <img src={user.profilePicture} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
-                      <span className="text-white text-sm font-black">{initials}</span>
+                    <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, var(--orange), var(--red))", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ color: "#fff", fontSize: "0.875rem", fontWeight: 900 }}>{initials}</span>
                     </div>
                   )}
                 </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-black text-gray-900 truncate">{user?.fullName || user?.username}</p>
-                  <p className="text-[11px] text-gray-400 truncate">{user?.email}</p>
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ fontSize: "0.875rem", fontWeight: 900, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {user?.fullName || user?.username}
+                  </p>
+                  <p style={{ fontSize: "0.6875rem", color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {user?.email}
+                  </p>
                 </div>
               </div>
 
-              <div className="px-4 pb-4 space-y-0.5">
+              <div style={{ padding: "0 1rem 1rem" }}>
                 {[
-                  { href: "/user/profile",  label: "My Profile"      },
-                  { href: "/user/settings", label: "Settings"        },
-                  { href: "/about",         label: "About Us"        },
-                  { href: "/help",          label: "Help & Support"  },
+                  { href: "/user/profile",  label: "My Profile" },
+                  { href: "/user/settings", label: "Settings" },
+                  { href: "/about",         label: "About Us" },
+                  { href: "/help",          label: "Help & Support" },
                   ...(isAdmin ? [{ href: "/admin/users", label: "Admin Panel" }] : []),
                 ].map(item => (
                   <Link key={item.href} href={item.href}>
-                    <div className="px-4 py-2.5 rounded-xl text-sm font-bold text-gray-800 hover:bg-gray-50 transition-colors">
+                    <div style={{ padding: "0.625rem 1rem", borderRadius: "0.625rem", fontSize: "0.875rem", fontWeight: 700, color: "var(--text-primary)", cursor: "pointer", transition: "background 0.15s" }}>
                       {item.label}
                     </div>
                   </Link>
                 ))}
-                <div className="pt-1.5 border-t border-gray-100 mt-1.5">
-                  <button onClick={handleLogout}
-                    className="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 transition-colors">
+                <div style={{ paddingTop: "0.375rem", borderTop: "1px solid var(--border)", marginTop: "0.375rem" }}>
+                  <button onClick={handleLogout} style={{ width: "100%", textAlign: "left", padding: "0.625rem 1rem", borderRadius: "0.625rem", fontSize: "0.875rem", fontWeight: 700, color: "#f87171", background: "transparent", border: "none", cursor: "pointer", transition: "background 0.15s" }}>
                     Log Out
                   </button>
                 </div>
               </div>
             </>
           ) : (
-            <div className="px-4 pb-4 pt-2 flex gap-3">
-              <Link href="/login" className="flex-1">
-                <button className="w-full py-2.5 border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">
+            <div style={{ padding: "0.5rem 1rem 1rem", display: "flex", gap: "0.75rem" }}>
+              <Link href="/login" style={{ flex: 1 }}>
+                <button style={{ width: "100%", padding: "0.625rem", border: "1px solid var(--border)", borderRadius: "0.625rem", fontSize: "0.875rem", fontWeight: 700, color: "var(--text-primary)", background: "transparent", cursor: "pointer" }}>
                   Log In
                 </button>
               </Link>
-              <Link href="/register" className="flex-1">
-                <button className="w-full py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl text-sm font-bold shadow-md shadow-orange-500/20">
+              <Link href="/register" style={{ flex: 1 }}>
+                <button style={{ width: "100%", padding: "0.625rem", background: "linear-gradient(135deg, var(--orange), var(--red))", color: "#fff", border: "none", borderRadius: "0.625rem", fontSize: "0.875rem", fontWeight: 700, cursor: "pointer", boxShadow: "var(--shadow-orange)" }}>
                   Sign Up Free
                 </button>
               </Link>
