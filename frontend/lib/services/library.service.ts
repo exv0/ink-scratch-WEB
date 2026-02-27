@@ -27,7 +27,7 @@ function authHeaders(): HeadersInit {
   // Token is stored in a cookie by the auth service; for Bearer-based setups
   // grab it from the cookie or localStorage depending on your AuthContext impl.
   if (typeof document === "undefined") return { "Content-Type": "application/json" };
-  const match = document.cookie.match(/(?:^|;\s*)token=([^;]+)/);
+  const match = document.cookie.match(/(?:^|;\s*)auth_token=([^;]+)/); // fixed: was "token", key is "auth_token"
   const token = match ? match[1] : null;
   return {
     "Content-Type": "application/json",
