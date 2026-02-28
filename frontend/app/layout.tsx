@@ -1,5 +1,5 @@
 // app/layout.tsx
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 
@@ -11,13 +11,17 @@ export const metadata: Metadata = {
   },
   description: "Thousands of manga, comics & novels — one portal, every device.",
   keywords: ["manga", "comics", "reader", "manhwa", "manhua", "ink scratch"],
-  themeColor: "#FF6B35",
   openGraph: {
     type: "website",
     siteName: "Ink Scratch",
     title: "Ink Scratch — Your Reading Journey Starts Here",
     description: "Thousands of manga, comics & novels — one portal, every device.",
   },
+};
+
+// ── Viewport ──────────────────────────────────────────────────────────────────
+export const viewport: Viewport = {
+  themeColor: "#FF6B35",
 };
 
 // ── Anti-flash theme script (runs synchronously before first paint) ───────────
